@@ -11,7 +11,7 @@ function App() {
     <Routes>
       <Route path="/" element={ <Dashboard/> } />
       <Route path="/task" element={ <Task/> } />
-      <Route path="/home" element={ <Home/> } />
+      <Route path="/child" element={ <Home/> } />
       <Route path="/parent" element={ <HomeP/> } />
       <Route path="/signup" element={ <SignUp/> } />
     </Routes>
