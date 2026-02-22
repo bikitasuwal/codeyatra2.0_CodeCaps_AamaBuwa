@@ -6,7 +6,6 @@ import HomeP from "./Pages/Parent/HomeP";
 import SignUp from "./Pages/SignUp";
 import ChildLayout from "./Layout.jsx/ChildLayout";
 import SOS from "./Pages/Child/SOS";
-
 function App() {
   return (
 
@@ -22,6 +21,7 @@ function App() {
     <Route path="home" element={<Home />} />
     <Route path="task" element={<Task />} />
     <Route path="sos" element={<SOS />} />
+    
   </Route>
 
 </Routes>
