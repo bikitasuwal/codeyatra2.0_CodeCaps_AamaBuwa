@@ -1,6 +1,60 @@
-import { CheckCircle, Clock, Phone, Pill, ShoppingCart, User } from "lucide-react";
+import { CheckCircle, Clock, Phone, Pill, ShoppingCart, User, AlertTriangle } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useAlarms } from "../../context/AlarmContext";
+
+const TIMEOUT_MINUTES = 10;
 
 export default function Home() {
+  const { alarms } = useAlarms();
+  const [overdueAlerts, setOverdueAlerts] = useState([]);
+  const [acknowledgedAlerts, setAcknowledgedAlerts] = useState([]);
+
+  useEffect(() => {
+    const checkForOverdueAlarms = () => {
+      const now = new Date().getTime();
+      const timeoutMs = TIMEOUT_MINUTES * 60 * 1000;
+
+      const overdue = alarms.filter((alarm) => {
+        if (!alarm.triggeredAt || alarm.acknowledgedAt) return false;
+        
+        const elapsedMs = now - alarm.triggeredAt;
+        return elapsedMs >= timeoutMs;
+      });
+
+      setOverdueAlerts(overdue);
+    };
+
+    checkForOverdueAlarms();
+    const intervalId = setInterval(checkForOverdueAlarms, 5000);
+
+    return () => clearInterval(intervalId);
+  }, [alarms]);
+
+  useEffect(() => {
+    const checkForAcknowledgedAlarms = () => {
+      const now = new Date().getTime();
+      const recentThresholdMs = 10000; // Show for 10 seconds
+
+      const recentlyAcknowledged = alarms.filter((alarm) => {
+        if (!alarm.acknowledgedAt) return false;
+        
+        const elapsedSinceAck = now - alarm.acknowledgedAt;
+        return elapsedSinceAck < recentThresholdMs;
+      });
+
+      setAcknowledgedAlerts(recentlyAcknowledged);
+    };
+
+    checkForAcknowledgedAlarms();
+    const intervalId = setInterval(checkForAcknowledgedAlarms, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [alarms]);
+
+  const handleCallParent = () => {
+    window.location.href = "tel:+977-9876543210";
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 flex justify-center py-10 px-4">
       <div className="w-full max-w-md space-y-6">
@@ -12,6 +66,68 @@ export default function Home() {
             B
           </div>
         </div>
+
+        {/* Medication Taken Success Alert */}
+        {acknowledgedAlerts.length > 0 && (
+          <div className="bg-green-900 border-2 border-green-600 p-5 rounded-2xl">
+            <div className="flex items-center gap-3 mb-3">
+              <CheckCircle className="text-green-400" size={28} />
+              <div>
+                <h3 className="text-lg font-bold text-green-200">
+                  Medication Taken! ✓
+                </h3>
+                <p className="text-sm text-green-300">
+                  आमा has confirmed taking the medication
+                </p>
+              </div>
+            </div>
+
+            {acknowledgedAlerts.map((alarm) => (
+              <div
+                key={alarm.id}
+                className="bg-green-950 border border-green-700 rounded-xl p-3"
+              >
+                <p className="font-semibold text-green-200">{alarm.label}</p>
+                <p className="text-sm text-green-400">Scheduled: {alarm.time} • Taken ✓</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Overdue Medication Alert */}
+        {overdueAlerts.length > 0 && (
+          <div className="bg-red-900 border-2 border-red-600 p-5 rounded-2xl animate-pulse">
+            <div className="flex items-center gap-3 mb-3">
+              <AlertTriangle className="text-red-400" size={28} />
+              <div>
+                <h3 className="text-lg font-bold text-red-200">
+                  Medication Not Taken!
+                </h3>
+                <p className="text-sm text-red-300">
+                  आमा has not confirmed medication for 10+ minutes
+                </p>
+              </div>
+            </div>
+
+            {overdueAlerts.map((alarm) => (
+              <div
+                key={alarm.id}
+                className="bg-red-950 border border-red-700 rounded-xl p-3 mb-3"
+              >
+                <p className="font-semibold text-red-200">{alarm.label}</p>
+                <p className="text-sm text-red-400">Scheduled: {alarm.time}</p>
+              </div>
+            ))}
+
+            <button
+              onClick={handleCallParent}
+              className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl flex items-center justify-center gap-2 font-bold mt-2"
+            >
+              <Phone size={18} />
+              Call आमा Now
+            </button>
+          </div>
+        )}
 
         {/* Parent Status Card */}
         <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-5 rounded-2xl border border-slate-800">
@@ -44,43 +160,8 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Tasks */}
-        <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800">
-          <p className="text-xs text-slate-400 uppercase tracking-widest">
-            My Tasks Today
-          </p>
 
-          <div className="mt-4 space-y-4">
-            <Task text="Call आमा this evening" />
-            <Task text="Refill Metformin prescription" />
-            <Task text="Check on BP readings" completed />
-          </div>
-        </div>
-
-        {/* Weekly Summary */}
-        <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800">
-          <p className="text-xs text-slate-400 uppercase tracking-widest">
-            Weekly Summary
-          </p>
-
-          <div className="flex justify-between mt-4">
-            <div>
-              <p className="text-sm text-slate-400">Task Completion</p>
-              <p className="text-xl font-bold">4 of 6 complete</p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-slate-400">Meds Streak</p>
-              <p className="text-lg font-semibold text-green-400">
-                12 Days 🔥
-              </p>
-            </div>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="mt-4 w-full bg-slate-800 h-2 rounded-full">
-            <div className="bg-orange-400 h-2 rounded-full w-2/3"></div>
-          </div>
-        </div>
+      
 
         {/* Quick Actions */}
         <div>

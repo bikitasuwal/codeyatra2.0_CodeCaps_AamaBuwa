@@ -6,11 +6,12 @@ import HomeP from "./Pages/Parent/HomeP";
 import SignUp from "./Pages/SignUp";
 import ChildLayout from "./Layout.jsx/ChildLayout";
 import SOS from "./Pages/Child/SOS";
+import { AlarmProvider } from "./context/AlarmContext";
 
 function App() {
   return (
-
-    <Routes>
+    <AlarmProvider>
+      <Routes>
 
   {/* Public */}
   <Route path="/" element={<Dashboard />} />
@@ -24,7 +25,8 @@ function App() {
     <Route path="sos" element={<SOS />} />
   </Route>
 
-</Routes>
+      </Routes>
+    </AlarmProvider>
   );
 
 }
