@@ -1,17 +1,80 @@
-import { CheckCircle, Clock, Phone, Pill, ShoppingCart, User } from "lucide-react";
+import { CheckCircle, Clock, Phone, Pill, ShoppingCart, User, LogOut, ChevronDown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 export default function Home() {
+  const navigate = useNavigate();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [user, setUser] = useState(null);
+
+  // Get user data from localStorage when component mounts
+  useEffect(() => {
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  }, []);
+
+  const handleLogout = () => {
+    // Clear user data from localStorage
+    localStorage.removeItem("user");
+    // Redirect to login page
+    navigate("/");
+  };
+
+  // Get initials from full name
+  const getInitials = (name) => {
+    if (!name) return "U";
+    return name.split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2);
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 flex justify-center py-10 px-4">
       <div className="w-full max-w-md space-y-6">
 
-        {/* Header */}
-        <div className="flex justify-between items-center">
+        {/* Header with Profile Dropdown */}
+        <div className="flex justify-between items-center relative">
           <h1 className="text-xl font-bold text-orange-400">आमा-बुवा</h1>
-          <div className="w-9 h-9 rounded-full border border-orange-400 flex items-center justify-center text-orange-400">
-            B
+          
+          {/* Profile Icon with Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="flex items-center gap-1 border border-orange-400 rounded-full pl-2 pr-1 py-1 hover:bg-orange-400/10 transition"
+            >
+              <div className="w-7 h-7 rounded-full flex items-center justify-center text-orange-400 font-medium">
+                {user ? getInitials(user.full_name) : "B"}
+              </div>
+              <ChevronDown size={16} className="text-orange-400" />
+            </button>
+
+            {/* Dropdown Menu */}
+            {isDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-56 bg-slate-900 border border-slate-700 rounded-xl shadow-lg overflow-hidden z-50">
+                <div className="py-3 px-4 border-b border-slate-700">
+                  <p className="text-sm font-medium text-white">{user?.full_name || "User Name"}</p>
+                  <p className="text-xs text-slate-400 mt-1">{user?.email || "user@example.com"}</p>
+                  <p className="text-xs text-orange-400 mt-1 capitalize">{user?.role_display || "Role"}</p>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left text-red-400 hover:bg-red-500/10 transition"
+                >
+                  <LogOut size={18} />
+                  <span>Logout</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
+
+        {/* Click outside to close dropdown */}
+        {isDropdownOpen && (
+          <div 
+            className="fixed inset-0 z-40"
+            onClick={() => setIsDropdownOpen(false)}
+          />
+        )}
 
         {/* Parent Status Card */}
         <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-5 rounded-2xl border border-slate-800">
