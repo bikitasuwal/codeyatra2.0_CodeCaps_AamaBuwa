@@ -4,17 +4,27 @@ import Task from "./Pages/Child/Task"
 import Dashboard from "./Pages/Dashboard";
 import HomeP from "./Pages/Parent/HomeP";
 import SignUp from "./Pages/SignUp";
+import ChildLayout from "./Layout.jsx/ChildLayout";
+import SOS from "./Pages/Child/SOS";
 
 function App() {
   return (
 
     <Routes>
-      <Route path="/" element={ <Dashboard/> } />
-      <Route path="/task" element={ <Task/> } />
-      <Route path="/child" element={ <Home/> } />
-      <Route path="/parent" element={ <HomeP/> } />
-      <Route path="/signup" element={ <SignUp/> } />
-    </Routes>
+
+  {/* Public */}
+  <Route path="/" element={<Dashboard />} />
+  <Route path="/signup" element={<SignUp />} />
+  <Route path="/parent" element={<HomeP />} />
+
+  {/* Child Portal */}
+  <Route path="/child" element={ <ChildLayout/> }>
+    <Route path="home" element={<Home />} />
+    <Route path="task" element={<Task />} />
+    <Route path="sos" element={<SOS />} />
+  </Route>
+
+</Routes>
   );
 
 }

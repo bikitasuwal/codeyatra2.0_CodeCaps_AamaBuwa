@@ -65,7 +65,7 @@ export default function Dashboard() {
           // Redirect based on role
           setTimeout(() => {
             if (userRole === "caregiver") {
-              navigate("/child");
+              navigate("/child/home");
             } else {
               navigate("/parent");
             }
