@@ -1,16 +1,20 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import Home from './Pages/Child/home'
+import { Routes, Route } from "react-router-dom";
+import Home from "./Pages/Child/Home"
+import Task from "./Pages/Child/Task"
+import Dashboard from "./Pages/Dashboard";
+import HomeP from "./Pages/Parent/HomeP";
 
 function App() {
-
   return (
-    <>
-      <Home />
-    </>
-  )
+
+    <Routes>
+      <Route path="/" element={ <Dashboard/> } />
+      <Route path="/task" element={ <Task/> } />
+      <Route path="/home" element={ <Home/> } />
+      <Route path="/parent" element={ <HomeP/> } />
+    </Routes>
+  );
+
 }
 
-export default App
+export default App;

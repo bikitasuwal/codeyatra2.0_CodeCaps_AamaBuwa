@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 @tailwind utilities;
 #root {
   max-width: 1280px;
@@ -41,3 +42,8 @@
 .read-the-docs {
   color: #888;
 }
+=======
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+>>>>>>> c04266b6e9474d58ea1e799ddc8d4ffe32cea215
