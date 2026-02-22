@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { User, Users } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function SignUp() {
   const [selectedRole, setSelectedRole] = useState(null);
@@ -117,7 +118,8 @@ export default function SignUp() {
         <p className="text-center text-sm text-gray-400 mt-6">
           Already have an account?{" "}
           <span className="text-orange-400 cursor-pointer hover:underline">
-            Log in
+            <Link to='/'>Log in</Link>
+            
           </span>
         </p>
       </div>

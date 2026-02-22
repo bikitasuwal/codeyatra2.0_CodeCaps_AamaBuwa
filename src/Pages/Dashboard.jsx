@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 export default function Dashboard() {
   const [selectedRole, setSelectedRole] = useState("");
@@ -101,7 +102,8 @@ export default function Dashboard() {
         <p className="text-center text-sm text-slate-400 mt-6">
           Don’t have an account?{" "}
           <span className="text-orange-400 cursor-pointer hover:underline">
-            Sign up
+            <Link to="/signup">Sign up</Link>
+            
           </span>
         </p>
 
