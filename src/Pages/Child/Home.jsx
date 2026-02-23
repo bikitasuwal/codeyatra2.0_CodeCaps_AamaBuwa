@@ -1,8 +1,61 @@
-import { CheckCircle, Clock, Phone, Pill, ShoppingCart, User, LogOut, ChevronDown, Users, Link2, X, Mail, AlertCircle } from "lucide-react";
+import { useAlarms } from "../../context/AlarmContext";
+
+const TIMEOUT_MINUTES = 10;
+import { CheckCircle, Clock, Phone, Pill, ShoppingCart, User, LogOut, ChevronDown, Users, Link2, X, Mail, AlertCircle, AlertTriangle, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 export default function Home() {
+  const { alarms } = useAlarms();
+  const [overdueAlerts, setOverdueAlerts] = useState([]);
+  const [acknowledgedAlerts, setAcknowledgedAlerts] = useState([]);
+
+  useEffect(() => {
+    const checkForOverdueAlarms = () => {
+      const now = new Date().getTime();
+      const timeoutMs = TIMEOUT_MINUTES * 60 * 1000;
+
+      const overdue = alarms.filter((alarm) => {
+        if (!alarm.triggeredAt || alarm.acknowledgedAt) return false;
+
+        const elapsedMs = now - alarm.triggeredAt;
+        return elapsedMs >= timeoutMs;
+      });
+
+      setOverdueAlerts(overdue);
+    };
+
+    checkForOverdueAlarms();
+    const intervalId = setInterval(checkForOverdueAlarms, 5000);
+
+    return () => clearInterval(intervalId);
+  }, [alarms]);
+
+  useEffect(() => {
+    const checkForAcknowledgedAlarms = () => {
+      const now = new Date().getTime();
+      const recentThresholdMs = 10000; // Show for 10 seconds
+
+      const recentlyAcknowledged = alarms.filter((alarm) => {
+        if (!alarm.acknowledgedAt) return false;
+
+        const elapsedSinceAck = now - alarm.acknowledgedAt;
+        return elapsedSinceAck < recentThresholdMs;
+      });
+
+      setAcknowledgedAlerts(recentlyAcknowledged);
+    };
+
+    checkForAcknowledgedAlarms();
+    const intervalId = setInterval(checkForAcknowledgedAlarms, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [alarms]);
+
+  const handleCallParent = () => {
+    window.location.href = "tel:+977-9876543210";
+  };
+
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showLinkForm, setShowLinkForm] = useState(false);
@@ -13,7 +66,7 @@ export default function Home() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [hasParent, setHasParent] = useState(false);
-  
+
   // Link form states
   const [parentEmail, setParentEmail] = useState("");
   const [relationship, setRelationship] = useState("Mother");
@@ -41,7 +94,7 @@ export default function Home() {
     try {
       const response = await fetch(`${API_URL}/api/my-parents?user_id=${childId}`);
       const data = await response.json();
-      
+
       if (data.success) {
         if (data.parents && data.parents.length > 0) {
           setHasParent(true);
@@ -96,20 +149,20 @@ export default function Home() {
       // First, get the parent ID from email
       const usersResponse = await fetch(`${API_URL}/api/users`);
       const usersData = await usersResponse.json();
-      
+
       if (!usersData.success) {
         throw new Error("Could not fetch users");
       }
-      
+
       // Find the parent by email
       const foundParent = usersData.users.find(
         u => u.email === parentEmail && u.role === 'elderly'
       );
-      
+
       if (!foundParent) {
-        setLinkMessage({ 
-          text: "Parent not found with this email", 
-          type: "error" 
+        setLinkMessage({
+          text: "Parent not found with this email",
+          type: "error"
         });
         setLinking(false);
         return;
@@ -131,9 +184,9 @@ export default function Home() {
       const data = await response.json();
 
       if (data.success) {
-        setLinkMessage({ 
-          text: "✅ Parent linked successfully!", 
-          type: "success" 
+        setLinkMessage({
+          text: "✅ Parent linked successfully!",
+          type: "success"
         });
         // Refresh status
         setTimeout(() => {
@@ -146,9 +199,9 @@ export default function Home() {
         setLinkMessage({ text: data.message, type: "error" });
       }
     } catch (error) {
-      setLinkMessage({ 
-        text: "Network error. Make sure backend is running.", 
-        type: "error" 
+      setLinkMessage({
+        text: "Network error. Make sure backend is running.",
+        type: "error"
       });
     } finally {
       setLinking(false);
@@ -158,7 +211,7 @@ export default function Home() {
   // Handle unlinking from parent
   const handleUnlinkParent = async () => {
     setLinking(true);
-    
+
     try {
       const response = await fetch(`${API_URL}/api/remove-family-link`, {
         method: 'POST',
@@ -178,9 +231,9 @@ export default function Home() {
         setParentHealth(null);
         setTasks([]);
         setHasParent(false);
-        setLinkMessage({ 
-          text: "Parent unlinked successfully", 
-          type: "success" 
+        setLinkMessage({
+          text: "Parent unlinked successfully",
+          type: "success"
         });
       } else {
         alert(data.message);
@@ -209,6 +262,12 @@ export default function Home() {
   const totalTasks = tasks.length;
   const completionPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
+  // Get only active (incomplete) tasks
+  const activeTasks = tasks.filter(task => !task.completed);
+  // Show only first 2 active tasks
+  const displayedTasks = activeTasks.slice(0, 2);
+  const hasMoreTasks = activeTasks.length > 2;
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
@@ -224,7 +283,7 @@ export default function Home() {
         {/* Header with Profile Dropdown */}
         <div className="flex justify-between items-center relative">
           <h1 className="text-xl font-bold text-orange-400">आमा-बुवा</h1>
-          
+
           {/* Profile Icon with Dropdown */}
           <div className="relative">
             <button
@@ -245,7 +304,7 @@ export default function Home() {
                   <p className="text-xs text-slate-400 mt-1">{user?.email || "user@example.com"}</p>
                   <p className="text-xs text-orange-400 mt-1 capitalize">{user?.role_display || "Child / Caregiver"}</p>
                 </div>
-                
+
                 {!hasParent && (
                   <button
                     onClick={() => {
@@ -258,7 +317,7 @@ export default function Home() {
                     <span>Link to Parent</span>
                   </button>
                 )}
-                
+
                 {hasParent && (
                   <button
                     onClick={() => {
@@ -271,7 +330,7 @@ export default function Home() {
                     <span>Unlink from Parent</span>
                   </button>
                 )}
-                
+
                 <button
                   onClick={handleLogout}
                   className="w-full flex items-center gap-3 px-4 py-3 text-left text-red-400 hover:bg-red-500/10 transition border-t border-slate-700"
@@ -284,9 +343,71 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Medication Taken Success Alert */}
+        {acknowledgedAlerts.length > 0 && (
+          <div className="bg-green-900 border-2 border-green-600 p-5 rounded-2xl">
+            <div className="flex items-center gap-3 mb-3">
+              <CheckCircle className="text-green-400" size={28} />
+              <div>
+                <h3 className="text-lg font-bold text-green-200">
+                  Medication Taken! ✓
+                </h3>
+                <p className="text-sm text-green-300">
+                  आमा has confirmed taking the medication
+                </p>
+              </div>
+            </div>
+
+            {acknowledgedAlerts.map((alarm) => (
+              <div
+                key={alarm.id}
+                className="bg-green-950 border border-green-700 rounded-xl p-3"
+              >
+                <p className="font-semibold text-green-200">{alarm.label}</p>
+                <p className="text-sm text-green-400">Scheduled: {alarm.time} • Taken ✓</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Overdue Medication Alert */}
+        {overdueAlerts.length > 0 && (
+          <div className="bg-red-900 border-2 border-red-600 p-5 rounded-2xl animate-pulse">
+            <div className="flex items-center gap-3 mb-3">
+              <AlertTriangle className="text-red-400" size={28} />
+              <div>
+                <h3 className="text-lg font-bold text-red-200">
+                  Medication Not Taken!
+                </h3>
+                <p className="text-sm text-red-300">
+                  आमा has not confirmed medication for 10+ minutes
+                </p>
+              </div>
+            </div>
+
+            {overdueAlerts.map((alarm) => (
+              <div
+                key={alarm.id}
+                className="bg-red-950 border border-red-700 rounded-xl p-3 mb-3"
+              >
+                <p className="font-semibold text-red-200">{alarm.label}</p>
+                <p className="text-sm text-red-400">Scheduled: {alarm.time}</p>
+              </div>
+            ))}
+
+            <button
+              onClick={handleCallParent}
+              className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl flex items-center justify-center gap-2 font-bold mt-2"
+            >
+              <Phone size={18} />
+              Call आमा Now
+            </button>
+          </div>
+        )}
+
         {/* Click outside to close dropdown */}
         {isDropdownOpen && (
-          <div 
+          <div
             className="fixed inset-0 z-40"
             onClick={() => setIsDropdownOpen(false)}
           />
@@ -299,7 +420,7 @@ export default function Home() {
               <AlertCircle className="mx-auto text-red-400 mb-4" size={48} />
               <h3 className="text-xl font-semibold text-white text-center mb-2">Unlink from Parent?</h3>
               <p className="text-sm text-slate-400 text-center mb-6">
-                Are you sure you want to unlink from {parent?.full_name}? 
+                Are you sure you want to unlink from {parent?.full_name}?
                 This will remove all tasks and health data.
               </p>
               <div className="flex gap-3">
@@ -333,18 +454,17 @@ export default function Home() {
             >
               <X size={20} />
             </button>
-            
+
             <div className="flex items-center gap-2 mb-4">
               <Mail className="text-orange-400" size={24} />
               <h3 className="text-lg font-semibold text-white">Link to Your Parent</h3>
             </div>
 
             {linkMessage.text && (
-              <div className={`mb-4 p-3 rounded-lg text-sm ${
-                linkMessage.type === "success" 
-                  ? "bg-green-500/20 text-green-400 border border-green-500/50" 
+              <div className={`mb-4 p-3 rounded-lg text-sm ${linkMessage.type === "success"
+                  ? "bg-green-500/20 text-green-400 border border-green-500/50"
                   : "bg-red-500/20 text-red-400 border border-red-500/50"
-              }`}>
+                }`}>
                 {linkMessage.text}
               </div>
             )}
@@ -422,7 +542,7 @@ export default function Home() {
                     {parent.full_name}
                   </h2>
                   <p className="text-sm text-slate-400">
-                    {parent.relationship || "Parent"} · 
+                    {parent.relationship || "Parent"} ·
                     <span className="text-green-400 ml-1">● Live monitoring</span>
                   </p>
                 </div>
@@ -435,104 +555,55 @@ export default function Home() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mt-5">
-                {/* Morning */}
-                <div className="bg-slate-900 p-4 rounded-xl border border-slate-700 text-center">
-                  <p className="text-xs text-slate-400">Morning (8AM)</p>
-                  {parentHealth?.morning_meds_taken ? (
-                    <>
-                      <CheckCircle className="mx-auto mt-2 text-green-400" size={26} />
-                      <p className="text-green-400 text-sm mt-1">Taken</p>
-                    </>
-                  ) : (
-                    <>
-                      <Clock className="mx-auto mt-2 text-amber-400" size={26} />
-                      <p className="text-amber-400 text-sm mt-1">Pending</p>
-                    </>
-                  )}
-                </div>
-
-                {/* Evening */}
-                <div className="bg-slate-900 p-4 rounded-xl border border-slate-700 text-center">
-                  <p className="text-xs text-slate-400">Evening (7PM)</p>
-                  {parentHealth?.evening_meds_taken ? (
-                    <>
-                      <CheckCircle className="mx-auto mt-2 text-green-400" size={26} />
-                      <p className="text-green-400 text-sm mt-1">Taken</p>
-                    </>
-                  ) : (
-                    <>
-                      <Clock className="mx-auto mt-2 text-amber-400" size={26} />
-                      <p className="text-amber-400 text-sm mt-1">Pending</p>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Health Stats */}
-              {parentHealth?.blood_pressure && parentHealth.blood_pressure !== "Not recorded" && (
-                <div className="mt-4 grid grid-cols-2 gap-4">
-                  <div className="bg-slate-900 p-3 rounded-lg">
-                    <p className="text-xs text-slate-400">Blood Pressure</p>
-                    <p className="text-sm font-medium text-white">{parentHealth.blood_pressure}</p>
-                  </div>
-                  <div className="bg-slate-900 p-3 rounded-lg">
-                    <p className="text-xs text-slate-400">Blood Sugar</p>
-                    <p className="text-sm font-medium text-white">{parentHealth.blood_sugar}</p>
-                  </div>
-                </div>
-              )}
+  
+            
             </div>
 
-            {/* Tasks */}
+            {/* Tasks - Show only first 2 active tasks with See More button */}
             <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800">
-              <p className="text-xs text-slate-400 uppercase tracking-widest">
-                My Tasks Today
-              </p>
-
-              <div className="mt-4 space-y-4">
-                {tasks.length > 0 ? (
-                  tasks.map(task => (
-                    <Task 
-                      key={task.id} 
-                      text={task.title} 
-                      completed={task.completed} 
-                    />
-                  ))
-                ) : (
-                  <p className="text-sm text-slate-400 text-center py-4">No tasks for today</p>
+              <div className="flex justify-between items-center mb-4">
+                <p className="text-xs text-slate-400 uppercase tracking-widest">
+                  Active Tasks
+                </p>
+                {hasMoreTasks && (
+                  <button
+                    onClick={() => navigate('/child/task')}
+                    className="text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1"
+                  >
+                    <Eye size={14} />
+                    See More ({activeTasks.length - 2} more)
+                  </button>
                 )}
               </div>
-            </div>
 
-            {/* Weekly Summary */}
-            <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800">
-              <p className="text-xs text-slate-400 uppercase tracking-widest">
-                Weekly Summary
-              </p>
-
-              <div className="flex justify-between mt-4">
-                <div>
-                  <p className="text-sm text-slate-400">Task Completion</p>
-                  <p className="text-xl font-bold">
-                    {completedTasks} of {totalTasks} complete
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-slate-400">Meds Streak</p>
-                  <p className="text-lg font-semibold text-green-400">
-                    {parentHealth?.meds_streak || 0} Days 🔥
-                  </p>
-                </div>
+              <div className="mt-2 space-y-4">
+                {displayedTasks.length > 0 ? (
+                  displayedTasks.map(task => (
+                    <div key={task.id} className="flex items-center gap-3">
+                      <div
+                        className={`w-4 h-4 rounded-full border ${
+                          task.completed
+                            ? "bg-orange-400 border-orange-400"
+                            : "border-orange-400"
+                        }`}
+                      ></div>
+                      <p className="text-sm text-white">{task.title}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-slate-400 text-center py-4">No active tasks</p>
+                )}
               </div>
 
-              {/* Progress Bar */}
-              <div className="mt-4 w-full bg-slate-800 h-2 rounded-full">
-                <div 
-                  className="bg-orange-400 h-2 rounded-full transition-all duration-500" 
-                  style={{ width: `${completionPercentage}%` }}
-                ></div>
-              </div>
+              {activeTasks.length > 0 && (
+                <button
+                  onClick={() => navigate('/child/task')}
+                  className="w-full mt-4 py-2 bg-slate-800 hover:bg-slate-700 text-orange-400 rounded-lg text-sm transition flex items-center justify-center gap-2"
+                >
+                  <Eye size={16} />
+                  View All Tasks
+                </button>
+              )}
             </div>
 
             {/* Quick Actions */}
@@ -542,10 +613,13 @@ export default function Home() {
               </p>
 
               <div className="grid grid-cols-2 gap-4">
-                <QuickButton icon={<Phone size={18} />} label="Call आमा now" />
-                <QuickButton icon={<Pill size={18} />} label="Log Medicine" />
-                <QuickButton icon={<ShoppingCart size={18} />} label="Order Grocery" />
-                <QuickButton icon={<User size={18} />} label="Book Officer" />
+                <QuickButton icon={<Phone size={18} />} label="Call आमा now" onClick={handleCallParent} />
+                <QuickButton
+                  icon={<Pill size={18} />}
+                  label="Log Medicine"
+                  onClick={() => navigate('/child/log')}
+                />
+                
               </div>
             </div>
           </>
@@ -555,30 +629,9 @@ export default function Home() {
   );
 }
 
-function Task({ text, completed }) {
-  return (
-    <div className="flex items-center gap-3">
-      <div
-        className={`w-4 h-4 rounded-full border ${
-          completed
-            ? "bg-orange-400 border-orange-400"
-            : "border-orange-400"
-        }`}
-      ></div>
-      <p
-        className={`text-sm ${
-          completed ? "line-through text-slate-500" : "text-white"
-        }`}
-      >
-        {text}
-      </p>
-    </div>
-  );
-}
-
 function QuickButton({ icon, label, onClick }) {
   return (
-    <button 
+    <button
       onClick={onClick}
       className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col items-center justify-center hover:border-orange-400 transition"
     >
