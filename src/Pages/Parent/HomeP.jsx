@@ -90,7 +90,7 @@ export default function HomeP() {
   // Dropdown states
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   
-  const REMINDER_INTERVAL_MS = 1 * 1000;
+  const REMINDER_INTERVAL_MS = 10 * 1000;
   const MAX_REMINDERS = 3;
   const API_URL = "http://10.5.5.143:5005";
 
@@ -712,7 +712,7 @@ export default function HomeP() {
             <div className="flex items-center gap-2 mb-2">
               <PhoneCall size={18} className="text-blue-600" />
               <p className="text-sm font-semibold text-blue-600">
-                आपतकालिन सम्पर्कहरू (Emergency Contacts)
+                Emergency Contacts
               </p>
             </div>
             <div className="space-y-2">
@@ -822,7 +822,7 @@ export default function HomeP() {
         {/* Emergency Section */}
         <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center space-y-4">
           <h2 className="text-xl font-bold text-red-600">
-            आपकाल – EMERGENCY
+            EMERGENCY
           </h2>
 
           <p className="text-sm text-red-400">
