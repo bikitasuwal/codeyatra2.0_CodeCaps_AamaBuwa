@@ -23,9 +23,9 @@ export default function Home() {
   // Your backend URL
   const API_URL = "http://10.5.5.143:5005";
 
-  // Get user data from localStorage when component mounts
+  // Get user data from sessionStorage when component mounts
   useEffect(() => {
-    const userData = localStorage.getItem("user");
+    const userData = sessionStorage.getItem("user");
     if (userData) {
       const parsedUser = JSON.parse(userData);
       setUser(parsedUser);
@@ -193,7 +193,8 @@ export default function Home() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
+    // Clear user data from sessionStorage
+    sessionStorage.removeItem("user");
     navigate("/");
   };
 
