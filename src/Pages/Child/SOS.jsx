@@ -1,4 +1,4 @@
-import { Plus, Trash2, Bell, CalendarDays, Phone, MapPin, User } from "lucide-react";
+import { Plus, Trash2, Bell, CalendarDays, ChevronLeft, MapPin, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useAlarms } from "../../context/AlarmContext";
 
@@ -42,9 +42,6 @@ export default function SOS() {
   const [alarmDate, setAlarmDate] = useState(todayDateValue());
   const [repeatMode, setRepeatMode] = useState("everyday");
   const [repeatDays, setRepeatDays] = useState([]);
-  const [alarmSoundOn, setAlarmSoundOn] = useState(true);
-  const [vibrationOn, setVibrationOn] = useState(true);
-  const [snoozeOn, setSnoozeOn] = useState(true);
   const [user, setUser] = useState(null);
   const [childContact, setChildContact] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -92,9 +89,6 @@ export default function SOS() {
     setAlarmDate(todayDateValue());
     setRepeatMode("everyday");
     setRepeatDays([]);
-    setAlarmSoundOn(true);
-    setVibrationOn(true);
-    setSnoozeOn(true);
     setShowAdd(false);
   };
 
@@ -189,30 +183,10 @@ export default function SOS() {
 
   if (showAdd) {
     return (
-      <div className="min-h-screen bg-[#0b1220] text-white px-5 py-6">
-        <div className="mx-auto w-full max-w-md rounded-2xl bg-[#111a2e] border border-[#1e2a45] p-5 space-y-6">
+      <div className="min-h-screen bg-[#0b1220] text-white px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
+        <div className="mx-auto w-full max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-4xl rounded-lg sm:rounded-xl md:rounded-2xl bg-[#111a2e] border border-[#1e2a45] p-4 sm:p-5 md:p-6 space-y-5 sm:space-y-6">
           
-          {/* Emergency Contact Card */}
-          {childContact && (
-            <div className="bg-orange-500/20 border border-orange-500/50 rounded-xl p-4">
-              <p className="text-xs text-orange-400 font-semibold uppercase mb-3">Emergency Contact Info</p>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2 text-orange-300">
-                  <User size={16} />
-                  <span>{childContact.full_name}</span>
-                </div>
-                <div className="flex items-center gap-2 text-orange-300">
-                  <Phone size={16} />
-                  <span>{childContact.contact_number}</span>
-                </div>
-                <div className="flex items-center gap-2 text-orange-300">
-                  <MapPin size={16} />
-                  <span className="text-xs">{childContact.address}</span>
-                </div>
-              </div>
-            </div>
-          )}
-
+         
           <div className="pt-2 pb-1">
             <div className="flex items-center justify-center gap-5 select-none">
               <div className="relative h-36 w-20 overflow-hidden">
@@ -338,76 +312,19 @@ export default function SOS() {
                 className="w-full bg-transparent border-b border-gray-600 focus:border-orange-500 outline-none py-2 text-white placeholder:text-gray-500"
               />
             </div>
-
-            <div className="space-y-1 border-b border-[#1e2a45] pb-3">
-              <div className="flex items-center justify-between">
-                <p className="text-xl text-gray-200">Alarm sound</p>
-                <button
-                  onClick={() => setAlarmSoundOn((prev) => !prev)}
-                  className={`w-12 h-7 rounded-full p-1 transition ${
-                    alarmSoundOn ? "bg-orange-500" : "bg-gray-600"
-                  }`}
-                >
-                  <span
-                    className={`block h-5 w-5 rounded-full bg-white transition ${
-                      alarmSoundOn ? "translate-x-5" : "translate-x-0"
-                    }`}
-                  />
-                </button>
-              </div>
-              <p className="text-sm text-gray-400">Homecoming</p>
-            </div>
-
-            <div className="space-y-1 border-b border-[#1e2a45] pb-3">
-              <div className="flex items-center justify-between">
-                <p className="text-xl text-gray-200">Vibration</p>
-                <button
-                  onClick={() => setVibrationOn((prev) => !prev)}
-                  className={`w-12 h-7 rounded-full p-1 transition ${
-                    vibrationOn ? "bg-orange-500" : "bg-gray-600"
-                  }`}
-                >
-                  <span
-                    className={`block h-5 w-5 rounded-full bg-white transition ${
-                      vibrationOn ? "translate-x-5" : "translate-x-0"
-                    }`}
-                  />
-                </button>
-              </div>
-              <p className="text-sm text-gray-400">Basic call</p>
-            </div>
-
-            <div className="space-y-1 border-b border-[#1e2a45] pb-3">
-              <div className="flex items-center justify-between">
-                <p className="text-xl text-gray-200">Snooze</p>
-                <button
-                  onClick={() => setSnoozeOn((prev) => !prev)}
-                  className={`w-12 h-7 rounded-full p-1 transition ${
-                    snoozeOn ? "bg-orange-500" : "bg-gray-600"
-                  }`}
-                >
-                  <span
-                    className={`block h-5 w-5 rounded-full bg-white transition ${
-                      snoozeOn ? "translate-x-5" : "translate-x-0"
-                    }`}
-                  />
-                </button>
-              </div>
-              <p className="text-sm text-gray-400">5 minutes, 3 times</p>
-            </div>
           </div>
 
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex items-center justify-between pt-3 sm:pt-4">
             <button
               onClick={() => setShowAdd(false)}
-              className="text-lg text-gray-300 hover:text-white"
+              className="text-base sm:text-lg text-gray-300 hover:text-white transition"
             >
               Cancel
             </button>
             <button
               onClick={addAlarm}
               disabled={saveDisabled}
-              className={`text-lg ${
+              className={`text-base sm:text-lg font-medium ${
                 saveDisabled
                   ? "text-gray-500 cursor-not-allowed"
                   : "text-orange-400 hover:text-orange-300"
@@ -423,21 +340,29 @@ export default function SOS() {
 
   return (
     <div className="min-h-screen bg-[#0b1220] text-white flex flex-col justify-between">
-      <div className="p-6 space-y-6">
+      <div className="px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8 space-y-5 sm:space-y-6 mx-auto w-full max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-4xl">
 
 
         {/* Title */}
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-start">
           <div>
-            <h2 className="text-2xl font-semibold">Parent Alarms</h2>
-            <p className="text-gray-400 text-sm">
+            <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+              <button
+                onClick={() => navigate("/child/home")}
+                className="p-2 hover:bg-slate-800 rounded-lg transition"
+              >
+                <ChevronLeft size={24} className="text-orange-400" />
+              </button>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-orange-400">Parent Alarms</h1>
+            </div>
+            <p className="text-gray-400 text-xs sm:text-sm">
               Schedule reminders that appear for आमा-बुवा.
             </p>
           </div>
 
           <button
             onClick={() => setShowAdd(true)}
-            className="bg-orange-500 p-3 rounded-full hover:bg-orange-600 transition"
+            className="bg-orange-500 p-2 sm:p-3 rounded-full hover:bg-orange-600 transition active:scale-95"
           >
             <Plus size={18} />
           </button>
@@ -517,11 +442,11 @@ export default function SOS() {
               placeholder="Alarm label"
               value={newLabel}
               onChange={(e) => setNewLabel(e.target.value)}
-              className="w-full rounded-md bg-[#1c2439] text-white p-2"
+              className="w-full rounded-lg sm:rounded-lg md:rounded-lg bg-[#1c2439] text-white p-2 sm:p-3 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
 
-            <div className="space-y-2">
-              <label className="text-sm text-gray-300 flex items-center gap-2">
+            <div className="space-y-2 sm:space-y-3">
+              <label className="text-xs sm:text-sm text-gray-300 flex items-center gap-2">
                 <CalendarDays size={14} />
                 Start date
               </label>
@@ -529,29 +454,29 @@ export default function SOS() {
                 type="date"
                 value={alarmDate}
                 onChange={(e) => setAlarmDate(e.target.value)}
-                className="w-full rounded-md bg-[#1c2439] text-white p-2"
+                className="w-full rounded-lg sm:rounded-lg md:rounded-lg bg-[#1c2439] text-white p-2 sm:p-3 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-orange-500"
               />
             </div>
 
-            <div className="space-y-3">
-              <p className="text-sm text-gray-300">Repeat</p>
-              <div className="flex gap-2">
+            <div className="space-y-2 sm:space-y-3">
+              <p className="text-xs sm:text-sm text-gray-300 font-medium">Repeat</p>
+              <div className="flex gap-2 sm:gap-3 flex-wrap">
                 <button
                   onClick={() => setRepeatMode("everyday")}
-                  className={`px-3 py-1.5 rounded-md text-sm border transition ${
+                  className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm border transition active:scale-95 ${
                     repeatMode === "everyday"
-                      ? "bg-orange-500 text-black border-orange-500"
-                      : "border-gray-600 text-gray-300"
+                      ? "bg-orange-500 text-black border-orange-500 font-medium"
+                      : "border-gray-600 text-gray-300 hover:border-gray-400"
                   }`}
                 >
                   Everyday
                 </button>
                 <button
                   onClick={() => setRepeatMode("customDays")}
-                  className={`px-3 py-1.5 rounded-md text-sm border transition ${
+                  className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm border transition active:scale-95 ${
                     repeatMode === "customDays"
-                      ? "bg-orange-500 text-black border-orange-500"
-                      : "border-gray-600 text-gray-300"
+                      ? "bg-orange-500 text-black border-orange-500 font-medium"
+                      : "border-gray-600 text-gray-300 hover:border-gray-400"
                   }`}
                 >
                   Different days
@@ -559,17 +484,17 @@ export default function SOS() {
               </div>
 
               {repeatMode === "customDays" && (
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 sm:gap-3">
                   {WEEK_DAYS.map((day, index) => {
                     const selected = repeatDays.includes(index);
                     return (
                       <button
                         key={day}
                         onClick={() => toggleRepeatDay(index)}
-                        className={`px-2.5 py-1 rounded-md text-xs border transition ${
+                        className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs border transition active:scale-95 ${
                           selected
-                            ? "bg-orange-500 text-black border-orange-500"
-                            : "border-gray-600 text-gray-300"
+                            ? "bg-orange-500 text-black border-orange-500 font-medium"
+                            : "border-gray-600 text-gray-300 hover:border-gray-400"
                         }`}
                       >
                         {day}
@@ -584,14 +509,14 @@ export default function SOS() {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowAdd(false)}
-                className="px-4 py-2 rounded-md border border-gray-600 hover:border-gray-400"
+                className="px-4 sm:px-5 py-2 sm:py-3 rounded-lg sm:rounded-lg bg-slate-800 border border-slate-700 text-sm sm:text-base hover:bg-slate-700 transition active:scale-95"
               >
                 Cancel
               </button>
               <button
                 onClick={addAlarm}
                 disabled={saveDisabled}
-                className="px-4 py-2 rounded-md bg-orange-500 hover:bg-orange-600"
+                className="px-4 sm:px-5 py-2 sm:py-3 rounded-lg sm:rounded-lg text-sm sm:text-base font-medium bg-orange-500 hover:bg-orange-600 disabled:bg-gray-600 disabled:cursor-not-allowed transition active:scale-95"
               >
                 Add
               </button>
@@ -600,9 +525,9 @@ export default function SOS() {
         )}
 
         {/* Alarm List */}
-        <ul className="mt-6 space-y-3">
+        <ul className="mt-6 space-y-3 sm:space-y-4">
           {alarms.length === 0 && (
-            <p className="text-gray-500 text-center mt-6">
+            <p className="text-gray-500 text-center text-sm sm:text-base mt-6">
               No alarms yet. Click + to add one.
             </p>
           )}
@@ -610,9 +535,9 @@ export default function SOS() {
           {alarms.map(({ id, time, label, enabled = true, date, repeatMode, repeatDays }) => (
             <li
               key={id}
-              className="flex items-center justify-between bg-[#111a2e] rounded-xl p-4"
+              className="flex items-center justify-between bg-[#111a2e] rounded-lg sm:rounded-xl md:rounded-2xl p-4 sm:p-5 md:p-6 hover:bg-[#151e35] transition"
             >
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 sm:gap-4">
                 <button
                   onClick={() => toggleAlarm(id)}
                   className={`w-6 h-6 flex items-center justify-center rounded-full border-2 transition ${
@@ -628,14 +553,14 @@ export default function SOS() {
 
                 <div>
                   <p
-                    className={`font-semibold text-lg ${
+                    className={`font-semibold text-base sm:text-lg md:text-xl ${
                       enabled ? "text-white" : "text-orange-500 line-through"
                     }`}
                   >
                     {label}
                   </p>
-                  <p className="text-gray-400 text-sm">{time}</p>
-                  <p className="text-gray-500 text-xs">
+                  <p className="text-gray-400 text-xs sm:text-sm">{time}</p>
+                  <p className="text-gray-500 text-xs sm:text-xs">
                     {formatSchedule({ date, repeatMode, repeatDays })}
                   </p>
                 </div>
@@ -651,9 +576,9 @@ export default function SOS() {
         </ul>
 
         {/* Info Box */}
-        <div className="bg-[#111a2e] border border-[#1e2a45] rounded-xl p-4 flex gap-3 mt-6">
-          <Bell className="text-blue-400 mt-1" size={18} />
-          <p className="text-sm text-gray-400">
+        <div className="bg-[#111a2e] border border-[#1e2a45] rounded-lg sm:rounded-xl md:rounded-2xl p-4 sm:p-5 md:p-6 flex gap-3 sm:gap-4 mt-6">
+          <Bell className="text-blue-400 mt-1 flex-shrink-0" size={18} />
+          <p className="text-xs sm:text-sm text-gray-400">
             Scheduled alarms will automatically trigger a full-screen alert on
             the parent's device at the exact time.
           </p>

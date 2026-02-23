@@ -1,6 +1,6 @@
 import { useAlarms } from "../../context/AlarmContext";
 
-const TIMEOUT_MINUTES = 10;
+const TIMEOUT_MINUTES = 1;
 import { CheckCircle, Clock, Phone, Pill, ShoppingCart, User, LogOut, ChevronDown, Users, Link2, X, Mail, AlertCircle, AlertTriangle, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -9,7 +9,7 @@ export default function Home() {
   const { alarms } = useAlarms();
   const [overdueAlerts, setOverdueAlerts] = useState([]);
   const [acknowledgedAlerts, setAcknowledgedAlerts] = useState([]);
-  const [escalatedAlerts, setEscalatedAlerts] = useState([]);
+  const [dismissedAlarmIds, setDismissedAlarmIds] = useState(new Set());
 
   useEffect(() => {
     const checkForOverdueAlarms = () => {
@@ -53,33 +53,14 @@ export default function Home() {
     return () => clearInterval(intervalId);
   }, [alarms]);
 
-  useEffect(() => {
-    const checkForEscalatedAlarms = () => {
-      const now = Date.now();
-      const escalatedAlarmKeys = Object.keys(localStorage).filter(key => 
-        key.startsWith('escalated_alarm_')
-      );
-
-      const escalated = escalatedAlarmKeys.map(key => {
-        const data = JSON.parse(localStorage.getItem(key));
-        return {
-          ...data,
-          id: data.id || key.replace('escalated_alarm_', ''),
-          storageKey: key
-        };
-      });
-
-      setEscalatedAlerts(escalated);
-    };
-
-    checkForEscalatedAlarms();
-    const intervalId = setInterval(checkForEscalatedAlarms, 1000);
-
-    return () => clearInterval(intervalId);
-  }, []);
-
   const handleCallParent = () => {
     window.location.href = "tel:+977-9876543210";
+  };
+
+  const handleDismissAlert = () => {
+    const newDismissed = new Set(dismissedAlarmIds);
+    overdueAlerts.forEach(alarm => newDismissed.add(alarm.id));
+    setDismissedAlarmIds(newDismissed);
   };
 
   const navigate = useNavigate();
@@ -303,12 +284,12 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex justify-center py-10 px-4">
-      <div className="w-full max-w-md space-y-6">
+    <div className="min-h-screen bg-slate-950 flex justify-center py-4 sm:py-6 md:py-8 lg:py-10 px-3 sm:px-4 md:px-6">
+      <div className="w-full max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-4xl space-y-4 sm:space-y-5 md:space-y-6">
 
         {/* Header with Profile Dropdown */}
-        <div className="flex justify-between items-center relative">
-          <h1 className="text-xl font-bold text-orange-400">आमा-बुवा</h1>
+        <div className="flex justify-between items-center relative sticky top-0 z-50 bg-slate-950 py-2 sm:py-3">
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-orange-400">आमा-बुवा</h1>
 
           {/* Profile Icon with Dropdown */}
           <div className="relative">
@@ -371,14 +352,14 @@ export default function Home() {
 
         {/* Medication Taken Success Alert */}
         {acknowledgedAlerts.length > 0 && (
-          <div className="bg-green-900 border-2 border-green-600 p-5 rounded-2xl">
-            <div className="flex items-center gap-3 mb-3">
-              <CheckCircle className="text-green-400" size={28} />
+          <div className="bg-green-900 border-2 border-green-600 p-4 sm:p-5 md:p-6 rounded-lg sm:rounded-xl md:rounded-2xl">
+            <div className="flex items-center gap-3 mb-4">
+              <CheckCircle className="text-green-400 flex-shrink-0" size={28} />
               <div>
-                <h3 className="text-lg font-bold text-green-200">
+                <h3 className="text-base sm:text-lg md:text-xl font-bold text-green-200">
                   Medication Taken! ✓
                 </h3>
-                <p className="text-sm text-green-300">
+                <p className="text-xs sm:text-sm text-green-300">
                   आमा has confirmed taking the medication
                 </p>
               </div>
@@ -387,97 +368,55 @@ export default function Home() {
             {acknowledgedAlerts.map((alarm) => (
               <div
                 key={alarm.id}
-                className="bg-green-950 border border-green-700 rounded-xl p-3"
+                className="bg-green-950 border border-green-700 rounded-lg sm:rounded-xl p-3 sm:p-4"
               >
-                <p className="font-semibold text-green-200">{alarm.label}</p>
-                <p className="text-sm text-green-400">Scheduled: {alarm.time} • Taken ✓</p>
+                <p className="font-semibold text-sm sm:text-base text-green-200">{alarm.label}</p>
+                <p className="text-xs sm:text-sm text-green-400">Scheduled: {alarm.time} • Taken ✓</p>
               </div>
             ))}
           </div>
         )}
 
         {/* Overdue Medication Alert */}
-        {overdueAlerts.length > 0 && (
-          <div className="bg-red-900 border-2 border-red-600 p-5 rounded-2xl animate-pulse">
-            <div className="flex items-center gap-3 mb-3">
-              <AlertTriangle className="text-red-400" size={28} />
-              <div>
-                <h3 className="text-lg font-bold text-red-200">
-                  Medication Not Taken!
-                </h3>
-                <p className="text-sm text-red-300">
-                  आमा has not confirmed medication for 10+ minutes
-                </p>
+        {overdueAlerts.filter(a => !dismissedAlarmIds.has(a.id)).length > 0 && (
+          <div className="bg-red-900 border-2 border-red-600 p-4 sm:p-5 md:p-6 rounded-lg sm:rounded-xl md:rounded-2xl animate-pulse">
+            <div className="flex items-center gap-3 mb-4 justify-between">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="text-red-400 flex-shrink-0" size={28} />
+                <div>
+                  <h3 className="text-base sm:text-lg md:text-xl font-bold text-red-200">
+                    Medication Not Taken!
+                  </h3>
+                  <p className="text-xs sm:text-sm text-red-300">
+                    आमा has not confirmed medication for 10+ minutes
+                  </p>
+                </div>
               </div>
+              <button
+                onClick={handleDismissAlert}
+                className="p-2 hover:bg-red-800 rounded-lg transition flex-shrink-0"
+                title="Dismiss alert"
+              >
+                <X size={20} className="text-red-400" />
+              </button>
             </div>
 
-            {overdueAlerts.map((alarm) => (
+            {overdueAlerts.filter(a => !dismissedAlarmIds.has(a.id)).map((alarm) => (
               <div
                 key={alarm.id}
-                className="bg-red-950 border border-red-700 rounded-xl p-3 mb-3"
+                className="bg-red-950 border border-red-700 rounded-lg sm:rounded-xl p-3 sm:p-4 mb-3"
               >
-                <p className="font-semibold text-red-200">{alarm.label}</p>
-                <p className="text-sm text-red-400">Scheduled: {alarm.time}</p>
+                <p className="font-semibold text-sm sm:text-base text-red-200">{alarm.label}</p>
+                <p className="text-xs sm:text-sm text-red-400">Scheduled: {alarm.time}</p>
               </div>
             ))}
 
             <button
               onClick={handleCallParent}
-              className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl flex items-center justify-center gap-2 font-bold mt-2"
+              className="w-full bg-red-600 hover:bg-red-700 text-white py-2 sm:py-3 rounded-lg sm:rounded-xl flex items-center justify-center gap-2 font-bold mt-4 text-sm sm:text-base transition-all active:scale-95"
             >
-              <Phone size={18} />
               Call आमा Now
             </button>
-          </div>
-        )}
-
-        {/* Escalated Medication Alert - CRITICAL */}
-        {escalatedAlerts.length > 0 && (
-          <div className="bg-gradient-to-r from-red-950 to-purple-950 border-2 border-red-500 p-5 rounded-2xl animate-pulse shadow-lg">
-            <div className="flex items-center gap-3 mb-3">
-              <AlertTriangle className="text-red-300 animate-bounce" size={32} />
-              <div>
-                <h3 className="text-lg font-bold text-red-100">
-                  🚨 CRITICAL - Parent Ignored Reminders!
-                </h3>
-                <p className="text-sm text-red-300">
-                  आमा has ignored 3 reminders. Immediate action needed!
-                </p>
-              </div>
-            </div>
-
-            {escalatedAlerts.map((alarm) => (
-              <div
-                key={alarm.id}
-                className="bg-red-950/80 border-2 border-red-600 rounded-xl p-4 mb-3"
-              >
-                <p className="font-bold text-red-100 text-base">{alarm.label}</p>
-                <p className="text-sm text-red-300 mt-1">Was scheduled at: {alarm.time}</p>
-                <p className="text-xs text-red-400 mt-2">❌ Ignored all 3 reminders (😊 → 😐 → 😢)</p>
-              </div>
-            ))}
-
-            <div className="flex gap-2 mt-4">
-              <button
-                onClick={handleCallParent}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl flex items-center justify-center gap-2 font-bold transition"
-              >
-                <Phone size={18} />
-                CALL NOW
-              </button>
-              <button
-                onClick={() => {
-                  // Clear escalated alerts from localStorage
-                  escalatedAlerts.forEach(alarm => {
-                    localStorage.removeItem(`escalated_alarm_${alarm.id}`);
-                  });
-                  setEscalatedAlerts([]);
-                }}
-                className="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-3 rounded-xl font-medium transition"
-              >
-                Dismiss
-              </button>
-            </div>
           </div>
         )}
 
@@ -608,37 +547,50 @@ export default function Home() {
         ) : hasParent && parent ? (
           <>
             {/* Parent Status Card */}
-            <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-5 rounded-2xl border border-slate-800">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-xs text-slate-400 uppercase tracking-widest">
+            <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-4 sm:p-5 md:p-6 rounded-lg sm:rounded-xl md:rounded-2xl border border-slate-800">
+              <div className="flex justify-between items-start gap-4">
+                <div className="flex-1">
+                  <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold">
                     {parent.relationship || "Parent"}'s Status
                   </p>
-                  <h2 className="text-lg font-semibold mt-3">
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-semibold mt-3 text-slate-100">
                     {parent.full_name}
                   </h2>
-                  <p className="text-sm text-slate-400">
+                  <p className="text-xs sm:text-sm text-slate-400 mt-2">
                     {parent.relationship || "Parent"} ·
                     <span className="text-green-400 ml-1">● Live monitoring</span>
                   </p>
                 </div>
                 <button
                   onClick={() => setShowUnlinkConfirm(true)}
-                  className="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition"
+                  className="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition flex-shrink-0"
                   title="Unlink parent"
                 >
                   <X size={18} />
                 </button>
               </div>
 
-  
-            
+              
+
+              {/* Health Stats */}
+              {parentHealth?.blood_pressure && parentHealth.blood_pressure !== "Not recorded" && (
+                <div className="mt-4 sm:mt-5 md:mt-6 grid grid-cols-2 gap-3 sm:gap-4">
+                  <div className="bg-slate-900 p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-lg border border-slate-700">
+                    <p className="text-xs text-slate-400 font-semibold">Blood Pressure</p>
+                    <p className="text-sm sm:text-base font-medium text-white mt-1">{parentHealth.blood_pressure}</p>
+                  </div>
+                  <div className="bg-slate-900 p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-lg border border-slate-700">
+                    <p className="text-xs text-slate-400 font-semibold">Blood Sugar</p>
+                    <p className="text-sm sm:text-base font-medium text-white mt-1">{parentHealth.blood_sugar}</p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Tasks - Show only first 2 active tasks with See More button */}
-            <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800">
+            <div className="bg-slate-900 p-4 sm:p-5 md:p-6 rounded-lg sm:rounded-xl md:rounded-2xl border border-slate-800">
               <div className="flex justify-between items-center mb-4">
-                <p className="text-xs text-slate-400 uppercase tracking-widest">
+                <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold">
                   Active Tasks
                 </p>
                 {hasMoreTasks && (
@@ -652,29 +604,29 @@ export default function Home() {
                 )}
               </div>
 
-              <div className="mt-2 space-y-4">
+              <div className="mt-3 sm:mt-4 space-y-3 sm:space-y-4">
                 {displayedTasks.length > 0 ? (
                   displayedTasks.map(task => (
                     <div key={task.id} className="flex items-center gap-3">
                       <div
-                        className={`w-4 h-4 rounded-full border ${
+                        className={`w-4 h-4 rounded-full border flex-shrink-0 ${
                           task.completed
                             ? "bg-orange-400 border-orange-400"
                             : "border-orange-400"
                         }`}
                       ></div>
-                      <p className="text-sm text-white">{task.title}</p>
+                      <p className="text-xs sm:text-sm text-white">{task.title}</p>
                     </div>
                   ))
                 ) : (
-                  <p className="text-sm text-slate-400 text-center py-4">No active tasks</p>
+                  <p className="text-xs sm:text-sm text-slate-400 text-center py-4">No active tasks</p>
                 )}
               </div>
 
               {activeTasks.length > 0 && (
                 <button
                   onClick={() => navigate('/child/task')}
-                  className="w-full mt-4 py-2 bg-slate-800 hover:bg-slate-700 text-orange-400 rounded-lg text-sm transition flex items-center justify-center gap-2"
+                  className="w-full mt-4 py-2 sm:py-2.5 bg-slate-800 hover:bg-slate-700 text-orange-400 rounded-lg text-xs sm:text-sm transition flex items-center justify-center gap-2 font-medium"
                 >
                   <Eye size={16} />
                   View All Tasks
@@ -684,26 +636,18 @@ export default function Home() {
 
             {/* Quick Actions */}
             <div>
-              <p className="text-xs text-slate-400 uppercase tracking-widest mb-4">
+              <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold mb-4">
                 Quick Actions
               </p>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-5">
                 <QuickButton icon={<Phone size={18} />} label="Call आमा now" onClick={handleCallParent} />
                 <QuickButton
                   icon={<Pill size={18} />}
                   label="Log Medicine"
                   onClick={() => navigate('/child/log')}
                 />
-                <QuickButton
-                  icon={<Mail size={18} />}
-                  label="Emergency Contact"
-                  onClick={() => navigate('/child/contact')}
-                />
-                <QuickButton
-                  icon={<ShoppingCart size={18} />}
-                  label="Order Grocery"
-                />
+                
               </div>
             </div>
           </>
@@ -717,10 +661,10 @@ function QuickButton({ icon, label, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col items-center justify-center hover:border-orange-400 transition"
+      className="bg-slate-900 border border-slate-800 p-4 sm:p-5 md:p-6 rounded-lg sm:rounded-xl md:rounded-2xl flex flex-col items-center justify-center hover:border-orange-400 hover:bg-slate-800 transition active:scale-95"
     >
       <div className="text-orange-400">{icon}</div>
-      <p className="text-sm mt-2 text-slate-300">{label}</p>
+      <p className="text-xs sm:text-sm md:text-base mt-2 sm:mt-3 text-slate-300 font-medium">{label}</p>
     </button>
   );
-}
+} 
