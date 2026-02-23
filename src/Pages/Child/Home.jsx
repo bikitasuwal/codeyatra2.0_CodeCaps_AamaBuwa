@@ -9,6 +9,7 @@ export default function Home() {
   const { alarms } = useAlarms();
   const [overdueAlerts, setOverdueAlerts] = useState([]);
   const [acknowledgedAlerts, setAcknowledgedAlerts] = useState([]);
+  const [escalatedAlerts, setEscalatedAlerts] = useState([]);
 
   useEffect(() => {
     const checkForOverdueAlarms = () => {
@@ -51,6 +52,31 @@ export default function Home() {
 
     return () => clearInterval(intervalId);
   }, [alarms]);
+
+  useEffect(() => {
+    const checkForEscalatedAlarms = () => {
+      const now = Date.now();
+      const escalatedAlarmKeys = Object.keys(localStorage).filter(key => 
+        key.startsWith('escalated_alarm_')
+      );
+
+      const escalated = escalatedAlarmKeys.map(key => {
+        const data = JSON.parse(localStorage.getItem(key));
+        return {
+          ...data,
+          id: data.id || key.replace('escalated_alarm_', ''),
+          storageKey: key
+        };
+      });
+
+      setEscalatedAlerts(escalated);
+    };
+
+    checkForEscalatedAlarms();
+    const intervalId = setInterval(checkForEscalatedAlarms, 1000);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   const handleCallParent = () => {
     window.location.href = "tel:+977-9876543210";
@@ -395,6 +421,56 @@ export default function Home() {
               <Phone size={18} />
               Call आमा Now
             </button>
+          </div>
+        )}
+
+        {/* Escalated Medication Alert - CRITICAL */}
+        {escalatedAlerts.length > 0 && (
+          <div className="bg-gradient-to-r from-red-950 to-purple-950 border-2 border-red-500 p-5 rounded-2xl animate-pulse shadow-lg">
+            <div className="flex items-center gap-3 mb-3">
+              <AlertTriangle className="text-red-300 animate-bounce" size={32} />
+              <div>
+                <h3 className="text-lg font-bold text-red-100">
+                  🚨 CRITICAL - Parent Ignored Reminders!
+                </h3>
+                <p className="text-sm text-red-300">
+                  आमा has ignored 3 reminders. Immediate action needed!
+                </p>
+              </div>
+            </div>
+
+            {escalatedAlerts.map((alarm) => (
+              <div
+                key={alarm.id}
+                className="bg-red-950/80 border-2 border-red-600 rounded-xl p-4 mb-3"
+              >
+                <p className="font-bold text-red-100 text-base">{alarm.label}</p>
+                <p className="text-sm text-red-300 mt-1">Was scheduled at: {alarm.time}</p>
+                <p className="text-xs text-red-400 mt-2">❌ Ignored all 3 reminders (😊 → 😐 → 😢)</p>
+              </div>
+            ))}
+
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={handleCallParent}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl flex items-center justify-center gap-2 font-bold transition"
+              >
+                <Phone size={18} />
+                CALL NOW
+              </button>
+              <button
+                onClick={() => {
+                  // Clear escalated alerts from localStorage
+                  escalatedAlerts.forEach(alarm => {
+                    localStorage.removeItem(`escalated_alarm_${alarm.id}`);
+                  });
+                  setEscalatedAlerts([]);
+                }}
+                className="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-3 rounded-xl font-medium transition"
+              >
+                Dismiss
+              </button>
+            </div>
           </div>
         )}
 

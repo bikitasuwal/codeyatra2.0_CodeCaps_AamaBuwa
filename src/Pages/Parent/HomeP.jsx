@@ -5,6 +5,8 @@ import {
   CheckCircle,
   Check,
   Bell,
+  AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAlarms } from "../../context/AlarmContext";
@@ -62,6 +64,8 @@ const shouldRunBySchedule = (alarm, now) => {
 export default function HomeP() {
   const { alarms, updateAlarms } = useAlarms();
   const [notifications, setNotifications] = useState([]);
+  const REMINDER_INTERVAL_MS = 1 * 1000;
+  const MAX_REMINDERS = 3;
 
   useEffect(() => {
     const checkForDueAlarms = () => {
@@ -95,6 +99,8 @@ export default function HomeP() {
               label: item.label,
               time: item.time,
               triggeredAt: now.getTime(),
+              retryCount: 1,
+              isReminder: false,
             }));
 
           return [...incoming, ...prev];
@@ -107,6 +113,8 @@ export default function HomeP() {
                 ...alarm, 
                 lastTriggeredDate: today,
                 triggeredAt: now.getTime(),
+                reminderCount: 1,
+                lastReminderTime: now.getTime(),
               };
             }
 
@@ -122,15 +130,96 @@ export default function HomeP() {
     return () => clearInterval(intervalId);
   }, [alarms, updateAlarms]);
 
+  useEffect(() => {
+    const checkForReminderRetry = () => {
+      const now = Date.now();
+
+      updateAlarms((prevAlarms) =>
+        prevAlarms.map((alarm) => {
+          if (!alarm.triggeredAt || alarm.acknowledgedAt) {
+            return alarm;
+          }
+
+          const reminderCount = alarm.reminderCount || 1;
+          const lastReminderTime = alarm.lastReminderTime || alarm.triggeredAt;
+          const timeSinceLastReminder = now - lastReminderTime;
+
+          if (reminderCount < MAX_REMINDERS && timeSinceLastReminder >= REMINDER_INTERVAL_MS) {
+            // Update the existing notification with new reminderCount and mark as reminder
+            setNotifications((prev) =>
+              prev.map((notif) =>
+                notif.id === alarm.id
+                  ? { ...notif, retryCount: reminderCount + 1, isReminder: true }
+                  : notif
+              )
+            );
+
+            return {
+              ...alarm,
+              reminderCount: reminderCount + 1,
+              lastReminderTime: now,
+            };
+          }
+
+          // Escalate immediately when 3rd reminder is reached (if not already escalated)
+          if (reminderCount >= MAX_REMINDERS && !alarm.hasEscalated) {
+            // Update notification to show escalation status
+            setNotifications((prev) =>
+              prev.map((notif) =>
+                notif.id === alarm.id
+                  ? { ...notif, isEscalated: true }
+                  : notif
+              )
+            );
+
+            const escalatedAlarm = {
+              id: alarm.id,
+              label: alarm.label,
+              time: alarm.time,
+              escalatedAt: now,
+              originalAlarmId: alarm.id,
+            };
+            
+            localStorage.setItem(
+              `escalated_alarm_${alarm.id}`,
+              JSON.stringify(escalatedAlarm)
+            );
+
+            return {
+              ...alarm,
+              hasEscalated: true,
+            };
+          }
+
+          return alarm;
+        })
+      );
+    };
+
+    const retryIntervalId = setInterval(checkForReminderRetry, 30000);
+
+    return () => clearInterval(retryIntervalId);
+  }, [alarms, updateAlarms]);
+
   const acknowledgeNotification = (id) => {
     const now = new Date();
     
     setNotifications((prev) => prev.filter((item) => item.id !== id));
     
+    // Clear escalated alarm from localStorage
+    localStorage.removeItem(`escalated_alarm_${id}`);
+    
     updateAlarms((prevAlarms) =>
       prevAlarms.map((alarm) =>
         alarm.id === id
-          ? { ...alarm, acknowledgedAt: now.getTime() }
+          ? { 
+              ...alarm, 
+              acknowledgedAt: now.getTime(),
+              triggeredAt: null,
+              reminderCount: 0,
+              lastReminderTime: null,
+              hasEscalated: false,
+            }
           : alarm
       )
     );
@@ -154,28 +243,86 @@ export default function HomeP() {
 
         {notifications.length > 0 && (
           <div className="bg-white border border-green-200 rounded-2xl shadow-md p-4 space-y-3">
-            <div className="flex items-center gap-2 text-green-700 font-semibold">
-              <Bell size={18} />
-              <span>नयाँ अलार्म सूचना (New Alarm Notification)</span>
-            </div>
-
-            {notifications.map((alarm) => (
-              <div
-                key={alarm.id}
-                className="rounded-xl border border-green-100 bg-green-50 p-3"
-              >
-                <p className="font-semibold text-gray-800">{alarm.label}</p>
-                <p className="text-sm text-gray-600">{alarm.time}</p>
-
-                <button
-                  onClick={() => acknowledgeNotification(alarm.id)}
-                  className="mt-3 w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-xl flex items-center justify-center gap-2 font-medium"
-                >
-                  <Check size={16} />
-                  ठिक छ (Acknowledged)
-                </button>
+            {/* Initial Notification */}
+            {notifications.some(n => !n.isReminder) && (
+              <div className="flex items-center gap-2 text-green-700 font-semibold">
+                <Bell size={18} />
+                <span>नयाँ अलार्म सूचना (New Alarm Notification)</span>
               </div>
-            ))}
+            )}
+
+            {/* Reminder Notification Header */}
+            {notifications.some(n => n.isReminder) && (
+              <div className="flex items-center gap-2 text-orange-600 font-semibold">
+                <RefreshCw size={18} className="animate-spin" />
+                <span>⏰ अनुस्मारक - पुनः सूचना (REMINDER - Follow-up Alert)</span>
+              </div>
+            )}
+
+            {notifications.map((alarm) => {
+              const getEmojiForReminder = () => {
+                if (!alarm.isReminder) return null;
+                switch (alarm.retryCount) {
+                  case 1:
+                    return "😊";
+                  case 2:
+                    return "😐";
+                  case 3:
+                    return "😢";
+                  default:
+                    return "😊";
+                }
+              };
+
+              return (
+                <div
+                  key={alarm.id}
+                  className={`rounded-xl border p-3 ${
+                    alarm.isReminder
+                      ? "border-orange-300 bg-orange-50"
+                      : "border-green-100 bg-green-50"
+                  }`}
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-gray-800">{alarm.label}</p>
+                        {alarm.isReminder && (
+                          <AlertCircle size={16} className="text-orange-600" />
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600">{alarm.time}</p>
+                    </div>
+                    {alarm.isReminder && (
+                      <div className="flex flex-col items-end gap-1">
+                        <span className="text-3xl">
+                          {getEmojiForReminder()}
+                        </span>
+                        <span className="text-xs font-bold px-2 py-1 rounded bg-orange-500 text-white">
+                          #{alarm.retryCount}/{MAX_REMINDERS}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => acknowledgeNotification(alarm.id)}
+                    className={`mt-3 w-full py-2 rounded-xl flex items-center justify-center gap-2 font-medium ${
+                      alarm.isReminder
+                        ? "bg-orange-600 hover:bg-orange-700 text-white"
+                        : "bg-green-600 hover:bg-green-700 text-white"
+                    }`}
+                  >
+                    <Check size={16} />
+                    {alarm.isReminder
+                      ? alarm.retryCount === 3
+                        ? "Last Chance - Acknowledge!"
+                        : "Acknowledged"
+                      : "ठिक छ (Acknowledged)"}
+                  </button>
+                </div>
+              );
+            })}
           </div>
         )}
 
