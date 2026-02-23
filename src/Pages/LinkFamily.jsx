@@ -15,9 +15,9 @@ export default function LinkFamily() {
 
   const API_URL = "http://10.5.5.143:5005";
 
-  // Load user data on mount
+  // Load user data from sessionStorage on mount
   useEffect(() => {
-    const userData = localStorage.getItem("user");
+    const userData = sessionStorage.getItem("user");
     if (userData) {
       const parsedUser = JSON.parse(userData);
       setUser(parsedUser);
@@ -63,14 +63,37 @@ export default function LinkFamily() {
     setMessage({ text: "", type: "" });
 
     try {
-      const response = await fetch(`${API_URL}/api/create-sample-family`, {
+      // First, find the parent ID from email
+      const usersResponse = await fetch(`${API_URL}/api/users`);
+      const usersData = await usersResponse.json();
+      
+      if (!usersData.success) {
+        throw new Error("Could not fetch users");
+      }
+      
+      // Find the parent by email
+      const foundParent = usersData.users.find(
+        u => u.email === parentEmail && u.role === 'elderly'
+      );
+      
+      if (!foundParent) {
+        setMessage({ 
+          text: "Parent not found with this email", 
+          type: "error" 
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Use the add-family-link endpoint instead of create-sample-family
+      const response = await fetch(`${API_URL}/api/add-family-link`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          caregiver_email: caregiverEmail,
-          parent_email: parentEmail,
+          caregiver_id: user.id,
+          parent_id: foundParent.id,
           relationship: relationship
         })
       });
@@ -79,7 +102,7 @@ export default function LinkFamily() {
 
       if (data.success) {
         setMessage({ 
-          text: data.message || "Family linked successfully!", 
+          text: "✅ Parent linked successfully!", 
           type: "success" 
         });
         // Refresh linked parents list
@@ -89,6 +112,11 @@ export default function LinkFamily() {
         }
         // Clear form
         setParentEmail("");
+        
+        // Clear message after 3 seconds
+        setTimeout(() => {
+          setMessage({ text: "", type: "" });
+        }, 3000);
       } else {
         setMessage({ text: data.message, type: "error" });
       }

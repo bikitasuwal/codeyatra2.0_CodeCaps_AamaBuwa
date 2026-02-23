@@ -115,7 +115,7 @@ export default function SignUp() {
                 }`}
             >
               <User className="mx-auto mb-2 sm:mb-3 text-orange-500" size={32} />
-              <h3 className="font-semibold text-gray-800 text-sm sm:text-base md:text-lg">Children</h3>
+              <h3 className="font-semibold text-gray-800 text-sm sm:text-base md:text-lg">Guardian</h3>
               <p className="text-xs sm:text-sm text-gray-500 mt-1">
                 Remote support
               </p>

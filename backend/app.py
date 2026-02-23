@@ -89,8 +89,7 @@ def init_db():
             address TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users (id),
-            UNIQUE(user_id)
+            FOREIGN KEY (user_id) REFERENCES users (id)
         )
     ''')
     
@@ -424,6 +423,8 @@ def remove_family_link():
         
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
+    
+    
 
 # ==================== ADD HEALTH DATA ====================
 @app.route('/api/add-health-data', methods=['POST'])
@@ -716,81 +717,464 @@ def delete_user(user_id):
         return jsonify({"success": False, "message": str(e)}), 500
 
 
-@app.route('/api/save-child-contact', methods=['POST'])
-def save_child_contact():
-    try:
-        data = request.get_json()
-        user_id = data.get('user_id')
-        full_name = data.get('full_name')
-        contact_number = data.get('contact_number')
-        address = data.get('address')
+# @app.route('/api/save-child-contact', methods=['POST'])
+# def save_child_contact():
+#     try:
+#         data = request.get_json()
+#         user_id = data.get('user_id')
+#         full_name = data.get('full_name')
+#         contact_number = data.get('contact_number')
+#         address = data.get('address')
         
-        if not all([user_id, full_name, contact_number, address]):
-            return jsonify({"success": False, "message": "All fields are required"}), 400
+#         if not all([user_id, full_name, contact_number, address]):
+#             return jsonify({"success": False, "message": "All fields are required"}), 400
+        
+#         conn = sqlite3.connect('aamabuwa.db')
+#         cursor = conn.cursor()
+        
+#         # Check if contact already exists
+#         cursor.execute('SELECT id FROM child_contacts WHERE user_id = ?', (user_id,))
+#         existing = cursor.fetchone()
+        
+#         if existing:
+#             # Update existing contact
+#             cursor.execute('''
+#                 UPDATE child_contacts 
+#                 SET full_name = ?, contact_number = ?, address = ?, updated_at = CURRENT_TIMESTAMP
+#                 WHERE user_id = ?
+#             ''', (full_name, contact_number, address, user_id))
+#         else:
+#             # Insert new contact
+#             cursor.execute('''
+#                 INSERT INTO child_contacts (user_id, full_name, contact_number, address)
+#                 VALUES (?, ?, ?, ?)
+#             ''', (user_id, full_name, contact_number, address))
+        
+#         conn.commit()
+#         conn.close()
+        
+#         return jsonify({"success": True, "message": "Contact information saved successfully"})
+        
+#     except Exception as e:
+#         return jsonify({"success": False, "message": str(e)}), 500
+
+# ==================== MULTIPLE CONTACTS ENDPOINTS ====================
+
+# ==================== GET ALL CONTACTS FOR A USER ====================
+@app.route('/api/child-contacts/<int:user_id>', methods=['GET'])
+def get_child_contacts(user_id):
+    try:
+        print(f"📥 Fetching contacts for user_id: {user_id}")
         
         conn = sqlite3.connect('aamabuwa.db')
         cursor = conn.cursor()
         
-        # Check if contact already exists
-        cursor.execute('SELECT id FROM child_contacts WHERE user_id = ?', (user_id,))
-        existing = cursor.fetchone()
+        # First check if table exists
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='child_contacts'")
+        table_exists = cursor.fetchone()
         
-        if existing:
-            # Update existing contact
+        if not table_exists:
+            print("❌ child_contacts table does not exist")
+            conn.close()
+            return jsonify({
+                "success": False,
+                "message": "Contacts table not found"
+            }), 500
+        
+        # Check what columns exist
+        cursor.execute("PRAGMA table_info(child_contacts)")
+        columns = cursor.fetchall()
+        column_names = [col[1] for col in columns]
+        print(f"📊 Table columns: {column_names}")
+        
+        # Build query based on existing columns
+        if 'relationship' in column_names:
             cursor.execute('''
-                UPDATE child_contacts 
-                SET full_name = ?, contact_number = ?, address = ?, updated_at = CURRENT_TIMESTAMP
+                SELECT id, full_name, contact_number, address, relationship, created_at
+                FROM child_contacts 
                 WHERE user_id = ?
-            ''', (full_name, contact_number, address, user_id))
+                ORDER BY created_at DESC
+            ''', (user_id,))
         else:
-            # Insert new contact
+            cursor.execute('''
+                SELECT id, full_name, contact_number, address, created_at
+                FROM child_contacts 
+                WHERE user_id = ?
+                ORDER BY created_at DESC
+            ''', (user_id,))
+        
+        contacts = cursor.fetchall()
+        print(f"✅ Found {len(contacts)} contacts")
+        
+        contact_list = []
+        for contact in contacts:
+            if len(contact) == 6:  # Has relationship column
+                contact_list.append({
+                    "id": contact[0],
+                    "full_name": contact[1],
+                    "contact_number": contact[2],
+                    "address": contact[3],
+                    "relationship": contact[4],
+                    "created_at": contact[5]
+                })
+            else:  # No relationship column
+                contact_list.append({
+                    "id": contact[0],
+                    "full_name": contact[1],
+                    "contact_number": contact[2],
+                    "address": contact[3],
+                    "relationship": "",
+                    "created_at": contact[4]
+                })
+        
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "contacts": contact_list
+        })
+        
+    except Exception as e:
+        print(f"❌ Error in get_child_contacts: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            "success": False,
+            "message": str(e)
+        }), 500
+
+# ==================== ADD NEW CONTACT ====================
+@app.route('/api/add-child-contact', methods=['POST'])
+def add_child_contact():
+    try:
+        data = request.get_json()
+        print(f"📥 Adding contact with data: {data}")
+        
+        user_id = data.get('user_id')
+        full_name = data.get('full_name')
+        contact_number = data.get('contact_number')
+        address = data.get('address')
+        relationship = data.get('relationship', '')
+        
+        if not all([user_id, full_name, contact_number, address]):
+            missing = []
+            if not user_id: missing.append('user_id')
+            if not full_name: missing.append('full_name')
+            if not contact_number: missing.append('contact_number')
+            if not address: missing.append('address')
+            return jsonify({
+                "success": False,
+                "message": f"Missing required fields: {', '.join(missing)}"
+            }), 400
+        
+        conn = sqlite3.connect('aamabuwa.db')
+        cursor = conn.cursor()
+        
+        # Check what columns exist
+        cursor.execute("PRAGMA table_info(child_contacts)")
+        columns = cursor.fetchall()
+        column_names = [col[1] for col in columns]
+        print(f"📊 Table columns: {column_names}")
+        
+        # Insert based on existing columns
+        if 'relationship' in column_names:
+            cursor.execute('''
+                INSERT INTO child_contacts (user_id, full_name, contact_number, address, relationship)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (user_id, full_name, contact_number, address, relationship))
+        else:
             cursor.execute('''
                 INSERT INTO child_contacts (user_id, full_name, contact_number, address)
                 VALUES (?, ?, ?, ?)
             ''', (user_id, full_name, contact_number, address))
         
         conn.commit()
+        contact_id = cursor.lastrowid
         conn.close()
         
-        return jsonify({"success": True, "message": "Contact information saved successfully"})
+        print(f"✅ Contact added with ID: {contact_id}")
+        
+        return jsonify({
+            "success": True,
+            "message": "Contact added successfully",
+            "contact_id": contact_id
+        }), 201
         
     except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
+        print(f"❌ Error in add_child_contact: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            "success": False,
+            "message": str(e)
+        }), 500
 
-
-@app.route('/api/child-contact/<int:user_id>', methods=['GET'])
-def get_child_contact(user_id):
+# ==================== DELETE CONTACT ====================
+@app.route('/api/delete-child-contact/<int:contact_id>', methods=['DELETE'])
+def delete_child_contact(contact_id):
     try:
+        print(f"📥 Deleting contact ID: {contact_id}")
+        
         conn = sqlite3.connect('aamabuwa.db')
         cursor = conn.cursor()
         
-        cursor.execute('''
-            SELECT id, full_name, contact_number, address, created_at, updated_at
-            FROM child_contacts WHERE user_id = ?
-        ''', (user_id,))
+        cursor.execute("DELETE FROM child_contacts WHERE id = ?", (contact_id,))
         
-        contact = cursor.fetchone()
+        conn.commit()
         conn.close()
         
-        if contact:
+        print(f"✅ Contact deleted successfully")
+        
+        return jsonify({
+            "success": True,
+            "message": "Contact deleted successfully"
+        })
+        
+    except Exception as e:
+        print(f"❌ Error in delete_child_contact: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            "success": False,
+            "message": str(e)
+        }), 500
+    
+# ==================== UPDATE DATABASE SCHEMA ====================
+@app.route('/api/update-db-schema', methods=['GET'])
+def update_db_schema():
+    try:
+        print("📥 Updating database schema...")
+        
+        conn = sqlite3.connect('aamabuwa.db')
+        cursor = conn.cursor()
+        
+        # Check if child_contacts table exists
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='child_contacts'")
+        table_exists = cursor.fetchone()
+        
+        if not table_exists:
+            # Create the table if it doesn't exist
+            cursor.execute('''
+                CREATE TABLE child_contacts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    full_name TEXT NOT NULL,
+                    contact_number TEXT NOT NULL,
+                    address TEXT NOT NULL,
+                    relationship TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users (id)
+                )
+            ''')
+            print("✅ Created child_contacts table")
+        else:
+            # Check if relationship column exists
+            cursor.execute("PRAGMA table_info(child_contacts)")
+            columns = cursor.fetchall()
+            column_names = [column[1] for column in columns]
+            print(f"📊 Existing columns: {column_names}")
+            
+            if 'relationship' not in column_names:
+                # Add relationship column
+                cursor.execute('''
+                    ALTER TABLE child_contacts 
+                    ADD COLUMN relationship TEXT
+                ''')
+                print("✅ Added relationship column to child_contacts table")
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "message": "Database schema updated successfully"
+        })
+        
+    except Exception as e:
+        print(f"❌ Error in update_db_schema: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            "success": False,
+            "message": str(e)
+        }), 500
+
+# ==================== FIX CONTACTS TABLE COMPLETELY ====================
+@app.route('/api/fix-contacts-final', methods=['GET'])
+def fix_contacts_final():
+    try:
+        print("🔧 Starting complete contacts table fix...")
+        
+        conn = sqlite3.connect('aamabuwa.db')
+        cursor = conn.cursor()
+        
+        # Step 1: Backup existing contacts
+        cursor.execute("SELECT COUNT(*) FROM child_contacts")
+        contact_count = cursor.fetchone()[0]
+        print(f"📊 Found {contact_count} existing contacts")
+        
+        if contact_count > 0:
+            cursor.execute("CREATE TABLE IF NOT EXISTS child_contacts_backup AS SELECT * FROM child_contacts")
+            print("✅ Backed up existing contacts")
+        
+        # Step 2: Drop the old table
+        cursor.execute("DROP TABLE IF EXISTS child_contacts")
+        print("✅ Dropped old table")
+        
+        # Step 3: Create new table with correct structure (NO UNIQUE CONSTRAINTS)
+        cursor.execute('''
+            CREATE TABLE child_contacts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                full_name TEXT NOT NULL,
+                contact_number TEXT NOT NULL,
+                address TEXT NOT NULL,
+                relationship TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        ''')
+        print("✅ Created new table with relationship column")
+        
+        # Step 4: Restore data if any existed
+        if contact_count > 0:
+            try:
+                cursor.execute('''
+                    INSERT INTO child_contacts (id, user_id, full_name, contact_number, address, created_at)
+                    SELECT id, user_id, full_name, contact_number, address, created_at
+                    FROM child_contacts_backup
+                ''')
+                print(f"✅ Restored {contact_count} contacts")
+            except Exception as e:
+                print(f"⚠️ Could not restore data: {e}")
+        
+        # Step 5: Clean up
+        cursor.execute("DROP TABLE IF EXISTS child_contacts_backup")
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "message": f"Table fixed! {contact_count} contacts preserved. You can now add multiple contacts with relationship."
+        })
+        
+    except Exception as e:
+        print(f"❌ Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            "success": False,
+            "message": str(e)
+        }), 500
+        
+# ==================== GET EMERGENCY CONTACTS FOR PARENT ====================
+@app.route('/api/parent-emergency-contacts/<int:parent_id>', methods=['GET'])
+def get_parent_emergency_contacts(parent_id):
+    try:
+        print(f"📥 Fetching emergency contacts for parent_id: {parent_id}")
+        
+        conn = sqlite3.connect('aamabuwa.db')
+        cursor = conn.cursor()
+        
+        # First find the caregiver (child) linked to this parent
+        cursor.execute('''
+            SELECT caregiver_id FROM family_links 
+            WHERE parent_id = ?
+        ''', (parent_id,))
+        
+        result = cursor.fetchone()
+        print(f"🔍 Caregiver result: {result}")
+        
+        if not result:
+            print("❌ No caregiver found for this parent")
+            conn.close()
             return jsonify({
                 "success": True,
-                "contact": {
-                    "id": contact[0],
-                    "full_name": contact[1],
-                    "contact_number": contact[2],
-                    "address": contact[3],
-                    "created_at": contact[4],
-                    "updated_at": contact[5]
-                }
+                "contacts": []
             })
-        else:
-            return jsonify({"success": True, "contact": None})
-            
+        
+        caregiver_id = result[0]
+        print(f"✅ Found caregiver_id: {caregiver_id}")
+        
+        # Then get all contacts for that caregiver
+        cursor.execute('''
+            SELECT id, full_name, contact_number, address, relationship, created_at
+            FROM child_contacts 
+            WHERE user_id = ?
+            ORDER BY created_at DESC
+        ''', (caregiver_id,))
+        
+        contacts = cursor.fetchall()
+        print(f"📊 Found {len(contacts)} contacts")
+        
+        contact_list = []
+        for contact in contacts:
+            contact_list.append({
+                "id": contact[0],
+                "full_name": contact[1],
+                "contact_number": contact[2],
+                "address": contact[3],
+                "relationship": contact[4] or "",
+                "created_at": contact[5]
+            })
+        
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "contacts": contact_list
+        })
+        
+    except Exception as e:
+        print(f"❌ Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            "success": False,
+            "message": str(e)
+        }), 500
+
+# ==================== GET PARENT'S CHILDREN ====================
+@app.route('/api/my-children', methods=['GET'])
+def get_my_children():
+    try:
+        parent_id = request.args.get('user_id')
+        
+        if not parent_id:
+            return jsonify({"success": False, "message": "User ID required"}), 400
+        
+        conn = sqlite3.connect('aamabuwa.db')
+        cursor = conn.cursor()
+        
+        # Get all children linked to this parent
+        cursor.execute('''
+            SELECT u.id, u.full_name, u.email, fl.relationship 
+            FROM users u
+            JOIN family_links fl ON u.id = fl.caregiver_id
+            WHERE fl.parent_id = ?
+        ''', (parent_id,))
+        
+        children = cursor.fetchall()
+        conn.close()
+        
+        child_list = []
+        for child in children:
+            child_list.append({
+                "id": child[0],
+                "full_name": child[1],
+                "email": child[2],
+                "relationship": child[3] or "Child"
+            })
+        
+        return jsonify({
+            "success": True,
+            "children": child_list
+        })
+        
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
-
-
+    
 if __name__ == '__main__':
     print("=" * 60)
     print("🚀 AamaBuwa Backend with Family Relationships")

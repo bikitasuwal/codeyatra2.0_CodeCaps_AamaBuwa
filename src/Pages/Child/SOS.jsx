@@ -1,4 +1,4 @@
-import { Plus, Trash2, Bell, CalendarDays, Phone, MapPin, User } from "lucide-react";
+import { Plus, Trash2, Bell, CalendarDays, ChevronLeft, MapPin, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useAlarms } from "../../context/AlarmContext";
 
@@ -42,9 +42,6 @@ export default function SOS() {
   const [alarmDate, setAlarmDate] = useState(todayDateValue());
   const [repeatMode, setRepeatMode] = useState("everyday");
   const [repeatDays, setRepeatDays] = useState([]);
-  const [alarmSoundOn, setAlarmSoundOn] = useState(true);
-  const [vibrationOn, setVibrationOn] = useState(true);
-  const [snoozeOn, setSnoozeOn] = useState(true);
   const [user, setUser] = useState(null);
   const [childContact, setChildContact] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -92,9 +89,6 @@ export default function SOS() {
     setAlarmDate(todayDateValue());
     setRepeatMode("everyday");
     setRepeatDays([]);
-    setAlarmSoundOn(true);
-    setVibrationOn(true);
-    setSnoozeOn(true);
     setShowAdd(false);
   };
 
@@ -192,27 +186,7 @@ export default function SOS() {
       <div className="min-h-screen bg-[#0b1220] text-white px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
         <div className="mx-auto w-full max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-4xl rounded-lg sm:rounded-xl md:rounded-2xl bg-[#111a2e] border border-[#1e2a45] p-4 sm:p-5 md:p-6 space-y-5 sm:space-y-6">
           
-          {/* Emergency Contact Card */}
-          {childContact && (
-            <div className="bg-orange-500/20 border border-orange-500/50 rounded-lg sm:rounded-xl md:rounded-2xl p-4 sm:p-5 md:p-6">
-              <p className="text-xs text-orange-400 font-semibold uppercase mb-3 sm:mb-4">Emergency Contact Info</p>
-              <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
-                <div className="flex items-center gap-2 text-orange-300">
-                  <User size={16} />
-                  <span>{childContact.full_name}</span>
-                </div>
-                <div className="flex items-center gap-2 text-orange-300">
-                  <Phone size={16} />
-                  <span>{childContact.contact_number}</span>
-                </div>
-                <div className="flex items-center gap-2 text-orange-300">
-                  <MapPin size={16} />
-                  <span className="text-xs">{childContact.address}</span>
-                </div>
-              </div>
-            </div>
-          )}
-
+         
           <div className="pt-2 pb-1">
             <div className="flex items-center justify-center gap-5 select-none">
               <div className="relative h-36 w-20 overflow-hidden">
@@ -338,63 +312,6 @@ export default function SOS() {
                 className="w-full bg-transparent border-b border-gray-600 focus:border-orange-500 outline-none py-2 text-white placeholder:text-gray-500"
               />
             </div>
-
-            <div className="space-y-1 border-b border-[#1e2a45] pb-3">
-              <div className="flex items-center justify-between">
-                <p className="text-xl text-gray-200">Alarm sound</p>
-                <button
-                  onClick={() => setAlarmSoundOn((prev) => !prev)}
-                  className={`w-12 h-7 rounded-full p-1 transition ${
-                    alarmSoundOn ? "bg-orange-500" : "bg-gray-600"
-                  }`}
-                >
-                  <span
-                    className={`block h-5 w-5 rounded-full bg-white transition ${
-                      alarmSoundOn ? "translate-x-5" : "translate-x-0"
-                    }`}
-                  />
-                </button>
-              </div>
-              <p className="text-sm text-gray-400">Homecoming</p>
-            </div>
-
-            <div className="space-y-1 border-b border-[#1e2a45] pb-3">
-              <div className="flex items-center justify-between">
-                <p className="text-xl text-gray-200">Vibration</p>
-                <button
-                  onClick={() => setVibrationOn((prev) => !prev)}
-                  className={`w-12 h-7 rounded-full p-1 transition ${
-                    vibrationOn ? "bg-orange-500" : "bg-gray-600"
-                  }`}
-                >
-                  <span
-                    className={`block h-5 w-5 rounded-full bg-white transition ${
-                      vibrationOn ? "translate-x-5" : "translate-x-0"
-                    }`}
-                  />
-                </button>
-              </div>
-              <p className="text-sm text-gray-400">Basic call</p>
-            </div>
-
-            <div className="space-y-1 border-b border-[#1e2a45] pb-3">
-              <div className="flex items-center justify-between">
-                <p className="text-xl text-gray-200">Snooze</p>
-                <button
-                  onClick={() => setSnoozeOn((prev) => !prev)}
-                  className={`w-12 h-7 rounded-full p-1 transition ${
-                    snoozeOn ? "bg-orange-500" : "bg-gray-600"
-                  }`}
-                >
-                  <span
-                    className={`block h-5 w-5 rounded-full bg-white transition ${
-                      snoozeOn ? "translate-x-5" : "translate-x-0"
-                    }`}
-                  />
-                </button>
-              </div>
-              <p className="text-sm text-gray-400">5 minutes, 3 times</p>
-            </div>
           </div>
 
           <div className="flex items-center justify-between pt-3 sm:pt-4">
@@ -427,10 +344,18 @@ export default function SOS() {
 
 
         {/* Title */}
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-start">
           <div>
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold">Parent Alarms</h2>
-            <p className="text-gray-400 text-xs sm:text-sm mt-1 sm:mt-2">
+            <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+              <button
+                onClick={() => navigate("/child/home")}
+                className="p-2 hover:bg-slate-800 rounded-lg transition"
+              >
+                <ChevronLeft size={24} className="text-orange-400" />
+              </button>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-orange-400">Parent Alarms</h1>
+            </div>
+            <p className="text-gray-400 text-xs sm:text-sm">
               Schedule reminders that appear for आमा-बुवा.
             </p>
           </div>

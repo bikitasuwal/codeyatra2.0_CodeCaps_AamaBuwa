@@ -1,6 +1,6 @@
 import { useAlarms } from "../../context/AlarmContext";
 
-const TIMEOUT_MINUTES = 10;
+const TIMEOUT_MINUTES = 1;
 import { CheckCircle, Clock, Phone, Pill, ShoppingCart, User, LogOut, ChevronDown, Users, Link2, X, Mail, AlertCircle, AlertTriangle, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -9,6 +9,7 @@ export default function Home() {
   const { alarms } = useAlarms();
   const [overdueAlerts, setOverdueAlerts] = useState([]);
   const [acknowledgedAlerts, setAcknowledgedAlerts] = useState([]);
+  const [dismissedAlarmIds, setDismissedAlarmIds] = useState(new Set());
 
   useEffect(() => {
     const checkForOverdueAlarms = () => {
@@ -54,6 +55,12 @@ export default function Home() {
 
   const handleCallParent = () => {
     window.location.href = "tel:+977-9876543210";
+  };
+
+  const handleDismissAlert = () => {
+    const newDismissed = new Set(dismissedAlarmIds);
+    overdueAlerts.forEach(alarm => newDismissed.add(alarm.id));
+    setDismissedAlarmIds(newDismissed);
   };
 
   const navigate = useNavigate();
@@ -371,21 +378,30 @@ export default function Home() {
         )}
 
         {/* Overdue Medication Alert */}
-        {overdueAlerts.length > 0 && (
+        {overdueAlerts.filter(a => !dismissedAlarmIds.has(a.id)).length > 0 && (
           <div className="bg-red-900 border-2 border-red-600 p-4 sm:p-5 md:p-6 rounded-lg sm:rounded-xl md:rounded-2xl animate-pulse">
-            <div className="flex items-center gap-3 mb-4">
-              <AlertTriangle className="text-red-400 flex-shrink-0" size={28} />
-              <div>
-                <h3 className="text-base sm:text-lg md:text-xl font-bold text-red-200">
-                  Medication Not Taken!
-                </h3>
-                <p className="text-xs sm:text-sm text-red-300">
-                  आमा has not confirmed medication for 10+ minutes
-                </p>
+            <div className="flex items-center gap-3 mb-4 justify-between">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="text-red-400 flex-shrink-0" size={28} />
+                <div>
+                  <h3 className="text-base sm:text-lg md:text-xl font-bold text-red-200">
+                    Medication Not Taken!
+                  </h3>
+                  <p className="text-xs sm:text-sm text-red-300">
+                    आमा has not confirmed medication for 10+ minutes
+                  </p>
+                </div>
               </div>
+              <button
+                onClick={handleDismissAlert}
+                className="p-2 hover:bg-red-800 rounded-lg transition flex-shrink-0"
+                title="Dismiss alert"
+              >
+                <X size={20} className="text-red-400" />
+              </button>
             </div>
 
-            {overdueAlerts.map((alarm) => (
+            {overdueAlerts.filter(a => !dismissedAlarmIds.has(a.id)).map((alarm) => (
               <div
                 key={alarm.id}
                 className="bg-red-950 border border-red-700 rounded-lg sm:rounded-xl p-3 sm:p-4 mb-3"
@@ -399,7 +415,7 @@ export default function Home() {
               onClick={handleCallParent}
               className="w-full bg-red-600 hover:bg-red-700 text-white py-2 sm:py-3 rounded-lg sm:rounded-xl flex items-center justify-center gap-2 font-bold mt-4 text-sm sm:text-base transition-all active:scale-95"
             >
-              Call आमा Now
+              Call Now
             </button>
           </div>
         )}
@@ -554,39 +570,7 @@ export default function Home() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-5 md:mt-6">
-                {/* Morning */}
-                <div className="bg-slate-900 p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-xl border border-slate-700 text-center">
-                  <p className="text-xs text-slate-400">Morning (8AM)</p>
-                  {parentHealth?.morning_meds_taken ? (
-                    <>
-                      <CheckCircle className="mx-auto mt-2 text-green-400" size={24} />
-                      <p className="text-green-400 text-xs sm:text-sm mt-2">Taken</p>
-                    </>
-                  ) : (
-                    <>
-                      <Clock className="mx-auto mt-2 text-amber-400" size={24} />
-                      <p className="text-amber-400 text-xs sm:text-sm mt-2">Pending</p>
-                    </>
-                  )}
-                </div>
-
-                {/* Evening */}
-                <div className="bg-slate-900 p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-xl border border-slate-700 text-center">
-                  <p className="text-xs text-slate-400">Evening (7PM)</p>
-                  {parentHealth?.evening_meds_taken ? (
-                    <>
-                      <CheckCircle className="mx-auto mt-2 text-green-400" size={24} />
-                      <p className="text-green-400 text-xs sm:text-sm mt-2">Taken</p>
-                    </>
-                  ) : (
-                    <>
-                      <Clock className="mx-auto mt-2 text-amber-400" size={24} />
-                      <p className="text-amber-400 text-xs sm:text-sm mt-2">Pending</p>
-                    </>
-                  )}
-                </div>
-              </div>
+              
 
               {/* Health Stats */}
               {parentHealth?.blood_pressure && parentHealth.blood_pressure !== "Not recorded" && (
@@ -683,4 +667,4 @@ function QuickButton({ icon, label, onClick }) {
       <p className="text-xs sm:text-sm md:text-base mt-2 sm:mt-3 text-slate-300 font-medium">{label}</p>
     </button>
   );
-}
+} 

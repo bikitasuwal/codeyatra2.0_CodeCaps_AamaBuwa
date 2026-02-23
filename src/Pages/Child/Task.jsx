@@ -139,6 +139,12 @@ export default function Task() {
         {/* Header with Back Button */}
         <div className="flex items-center justify-between mb-6 sm:mb-8">
           <div className="flex items-center gap-3 sm:gap-4">
+            <button
+              onClick={handleBack}
+              className="text-gray-400 hover:text-white transition"
+            >
+              <ArrowLeft size={20} />
+            </button>
             <div>
               <h1 className="text-orange-400 text-lg sm:text-xl font-semibold">आमा-बुवा</h1>
               <p className="text-xs text-gray-400 tracking-widest">AAMABUWA</p>

@@ -129,7 +129,7 @@ export default function Dashboard() {
               }`}
           >
             <div className="text-3xl sm:text-4xl md:text-5xl mb-2 sm:mb-3">👨👩</div>
-            <h3 className="font-semibold text-gray-800 text-sm sm:text-base md:text-lg">Children</h3>
+            <h3 className="font-semibold text-gray-800 text-sm sm:text-base md:text-lg">Guardian</h3>
             <p className="text-xs sm:text-sm text-gray-500 mt-1">
               I care remotely
             </p>
