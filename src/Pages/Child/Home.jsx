@@ -695,7 +695,15 @@ export default function Home() {
                   label="Log Medicine"
                   onClick={() => navigate('/child/log')}
                 />
-                
+                <QuickButton
+                  icon={<Mail size={18} />}
+                  label="Emergency Contact"
+                  onClick={() => navigate('/child/contact')}
+                />
+                <QuickButton
+                  icon={<ShoppingCart size={18} />}
+                  label="Order Grocery"
+                />
               </div>
             </div>
           </>

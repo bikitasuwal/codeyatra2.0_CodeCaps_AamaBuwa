@@ -1,4 +1,4 @@
-import { Plus, Trash2, Bell, CalendarDays } from "lucide-react";
+import { Plus, Trash2, Bell, CalendarDays, Phone, MapPin, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useAlarms } from "../../context/AlarmContext";
 
@@ -45,6 +45,9 @@ export default function SOS() {
   const [alarmSoundOn, setAlarmSoundOn] = useState(true);
   const [vibrationOn, setVibrationOn] = useState(true);
   const [snoozeOn, setSnoozeOn] = useState(true);
+  const [user, setUser] = useState(null);
+  const [childContact, setChildContact] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   // Custom Time Picker State
   const [hour, setHour] = useState(7);
@@ -107,6 +110,30 @@ export default function SOS() {
     setRepeatMode("everyday");
   };
 
+  // Load user and child contact info
+  useEffect(() => {
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      const parsedUser = JSON.parse(userData);
+      setUser(parsedUser);
+      loadChildContact(parsedUser.id);
+    }
+  }, []);
+
+  const loadChildContact = async (userId) => {
+    try {
+      const response = await fetch(`http://10.5.5.143:5005/api/child-contact/${userId}`);
+      const data = await response.json();
+      if (data.success && data.contact) {
+        setChildContact(data.contact);
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error("Error loading contact:", error);
+      setLoading(false);
+    }
+  };
+
   const saveDisabled =
     !newLabel.trim() || (repeatMode === "customDays" && repeatDays.length === 0);
 
@@ -164,6 +191,28 @@ export default function SOS() {
     return (
       <div className="min-h-screen bg-[#0b1220] text-white px-5 py-6">
         <div className="mx-auto w-full max-w-md rounded-2xl bg-[#111a2e] border border-[#1e2a45] p-5 space-y-6">
+          
+          {/* Emergency Contact Card */}
+          {childContact && (
+            <div className="bg-orange-500/20 border border-orange-500/50 rounded-xl p-4">
+              <p className="text-xs text-orange-400 font-semibold uppercase mb-3">Emergency Contact Info</p>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2 text-orange-300">
+                  <User size={16} />
+                  <span>{childContact.full_name}</span>
+                </div>
+                <div className="flex items-center gap-2 text-orange-300">
+                  <Phone size={16} />
+                  <span>{childContact.contact_number}</span>
+                </div>
+                <div className="flex items-center gap-2 text-orange-300">
+                  <MapPin size={16} />
+                  <span className="text-xs">{childContact.address}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="pt-2 pb-1">
             <div className="flex items-center justify-center gap-5 select-none">
               <div className="relative h-36 w-20 overflow-hidden">

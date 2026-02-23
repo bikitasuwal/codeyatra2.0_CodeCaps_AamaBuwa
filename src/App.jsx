@@ -7,6 +7,7 @@ import SignUp from "./Pages/SignUp";
 import ChildLayout from "./Layout.jsx/ChildLayout";
 import SOS from "./Pages/Child/SOS";
 import { AlarmProvider } from "./context/AlarmContext";
+import Contact from "./Pages/Child/Contact";
 
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
     <Route path="home" element={<Home />} />
     <Route path="task" element={<Task />} />
     <Route path="log" element={<SOS />} />
+    <Route path="contact" element={< Contact />} />
     
   </Route>
 

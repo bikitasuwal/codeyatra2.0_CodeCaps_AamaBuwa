@@ -7,7 +7,8 @@ export default function Footer() {
   const navItems = [
     { name: "Home", icon: Home, path: "/child/home" },
     { name: "Tasks", icon: ClipboardList, path: "/child/task" },
-    { name: "SOS", icon: AlertCircle, path: "/child/log" },
+    { name: "Log Medicine", icon: AlertCircle, path: "/child/log" },
+    { name: "Contact", icon: AlertCircle, path: "/child/contact" },
   ];
 
   return (
