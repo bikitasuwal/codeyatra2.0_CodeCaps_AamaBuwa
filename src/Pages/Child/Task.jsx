@@ -133,77 +133,71 @@ export default function Task() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0B1220] text-white flex justify-center p-6">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-[#0B1220] text-white flex justify-center px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
+      <div className="w-full max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-4xl">
 
         {/* Header with Back Button */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={handleBack}
-              className="text-gray-400 hover:text-white transition"
-            >
-              <ArrowLeft size={20} />
-            </button>
+        <div className="flex items-center justify-between mb-6 sm:mb-8">
+          <div className="flex items-center gap-3 sm:gap-4">
             <div>
-              <h1 className="text-orange-400 text-xl font-semibold">आमा-बुवा</h1>
+              <h1 className="text-orange-400 text-lg sm:text-xl font-semibold">आमा-बुवा</h1>
               <p className="text-xs text-gray-400 tracking-widest">AAMABUWA</p>
             </div>
           </div>
 
-          <div className="w-10 h-10 rounded-full border border-orange-400 flex items-center justify-center text-orange-400">
+          <div className="w-10 h-10 rounded-full border border-orange-400 flex items-center justify-center text-orange-400 text-sm sm:text-base">
             {user?.full_name?.charAt(0) || "U"}
           </div>
         </div>
 
         {/* Title */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
           <div>
-            <h2 className="text-3xl font-bold">My Tasks</h2>
-            <p className="text-gray-400 text-sm">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">My Tasks</h2>
+            <p className="text-gray-400 text-xs sm:text-sm mt-1 sm:mt-2">
               {parent ? `Tasks for ${parent.full_name}` : "Manage care routines and errands."}
             </p>
           </div>
 
           <button
             onClick={addTask}
-            className="bg-orange-400 hover:bg-orange-500 transition p-3 rounded-full"
+            className="bg-orange-400 hover:bg-orange-500 transition p-2 sm:p-3 rounded-full active:scale-95"
           >
             <Plus size={20} className="text-black" />
           </button>
         </div>
 
         {/* Input */}
-        <div className="mb-6">
+        <div className="mb-5 sm:mb-6 md:mb-8">
           <input
             value={newTask}
             onChange={(e) => setNewTask(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && addTask()}
             placeholder="Add new task..."
-            className="w-full bg-[#111827] rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+            className="w-full bg-[#111827] rounded-lg sm:rounded-lg md:rounded-lg p-2 sm:p-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
           />
         </div>
 
         {/* Active Tasks */}
         {activeTasks.length > 0 && (
           <>
-            <p className="text-xs text-gray-500 mb-3">ACTIVE TASKS</p>
-            <div className="space-y-4">
+            <p className="text-xs text-gray-500 mb-3 sm:mb-4 font-semibold uppercase">Active Tasks</p>
+            <div className="space-y-3 sm:space-y-4">
               {activeTasks.map((task) => (
                 <div
                   key={task.id}
-                  className="bg-[#111827] rounded-xl p-4 flex items-start gap-4 hover:bg-[#1A2233] transition"
+                  className="bg-[#111827] rounded-lg sm:rounded-xl md:rounded-2xl p-3 sm:p-4 md:p-5 flex items-start gap-3 sm:gap-4 hover:bg-[#1A2233] transition"
                 >
                   {/* Checkbox */}
                   <div
                     onClick={() => toggleTask(task.id, task.completed)}
-                    className="w-5 h-5 rounded-md border-2 border-orange-400 mt-1 cursor-pointer flex items-center justify-center"
+                    className="w-5 h-5 rounded-md border-2 border-orange-400 mt-1 cursor-pointer flex items-center justify-center flex-shrink-0 active:scale-95"
                   />
 
                   <div className="flex-1">
-                    <p className="font-medium">{task.title}</p>
+                    <p className="font-medium text-sm sm:text-base">{task.title}</p>
                     {task.description && (
-                      <p className="text-sm text-gray-400 mt-1">{task.description}</p>
+                      <p className="text-xs sm:text-sm text-gray-400 mt-1">{task.description}</p>
                     )}
                     <div className="flex items-center gap-2 mt-2 text-xs text-gray-400">
                       <Calendar size={14} />
@@ -219,24 +213,24 @@ export default function Task() {
         {/* Completed Tasks */}
         {completedTasks.length > 0 && (
           <>
-            <p className="text-xs text-gray-500 mt-8 mb-3">
-              COMPLETED RECENTLY
+            <p className="text-xs text-gray-500 mt-6 sm:mt-8 mb-3 sm:mb-4 font-semibold uppercase">
+              Completed Recently
             </p>
 
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               {completedTasks.map((task) => (
                 <div
                   key={task.id}
-                  className="bg-[#111827] rounded-xl p-4 flex items-center justify-between opacity-70"
+                  className="bg-[#111827] rounded-lg sm:rounded-xl md:rounded-2xl p-3 sm:p-4 md:p-5 flex items-center justify-between opacity-70 hover:opacity-100 transition"
                 >
-                  <p className="line-through text-gray-400">
+                  <p className="line-through text-gray-400 text-sm sm:text-base">
                     {task.title}
                   </p>
 
                   <Trash2
                     size={16}
                     onClick={() => deleteTask(task.id)}
-                    className="text-gray-500 cursor-pointer hover:text-red-400"
+                    className="text-gray-500 cursor-pointer hover:text-red-400 flex-shrink-0"
                   />
                 </div>
               ))}
@@ -246,7 +240,7 @@ export default function Task() {
 
         {/* Empty State */}
         {tasks.length === 0 && (
-          <div className="text-center text-gray-500 mt-16 text-sm">
+          <div className="text-center text-gray-500 mt-12 sm:mt-16 text-xs sm:text-sm">
             No tasks yet. Tap + to add one ✨
           </div>
         )}

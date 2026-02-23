@@ -7,7 +7,7 @@ export default function ChildLayout() {
   return (
     <div className="min-h-screen bg-slate-900 text-white flex flex-col">
       
-      <Header/>
+      
 
       {/* Page Content */}
       <main className="flex-1 pb-20">

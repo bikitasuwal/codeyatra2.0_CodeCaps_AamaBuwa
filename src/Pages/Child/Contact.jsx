@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Phone, MapPin, ChevronLeft, Save, AlertCircle } from "lucide-react";
 
-export default function Contact() {
+export default function Contact() { 
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({
@@ -129,28 +129,28 @@ export default function Contact() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex justify-center py-10 px-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-slate-950 flex justify-center py-4 sm:py-6 md:py-10 px-3 sm:px-4 md:px-6">
+      <div className="w-full max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-4xl">
         {/* Header with Back Button */}
-        <div className="flex items-center gap-3 mb-8">
+        <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
           <button
             onClick={() => navigate("/child")}
-            className="p-2 hover:bg-slate-800 rounded-lg transition"
+            className="p-2 hover:bg-slate-800 rounded-lg transition active:scale-95"
           >
             <ChevronLeft size={24} className="text-orange-400" />
           </button>
-          <h1 className="text-2xl font-bold text-orange-400">Emergency Contact</h1>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-orange-400">Emergency Contact</h1>
         </div>
 
         {/* Info Card */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 mb-6">
-          <div className="flex items-start gap-3">
+        <div className="bg-slate-900 border border-slate-800 rounded-lg sm:rounded-xl md:rounded-2xl p-4 sm:p-5 md:p-6 mb-5 sm:mb-6 md:mb-8">
+          <div className="flex items-start gap-3 sm:gap-4">
             <AlertCircle className="text-orange-400 flex-shrink-0 mt-1" size={20} />
             <div>
-              <p className="text-sm font-semibold text-gray-300">
+              <p className="text-xs sm:text-sm font-semibold text-gray-300">
                 This information will be used for emergency SOS alerts
               </p>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-slate-400 mt-1 sm:mt-2">
                 Parents will see your contact details when they activate SOS
               </p>
             </div>
@@ -158,10 +158,10 @@ export default function Contact() {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="bg-slate-900 border border-slate-800 rounded-lg sm:rounded-xl md:rounded-2xl p-4 sm:p-5 md:p-6 space-y-4 sm:space-y-5 md:space-y-6">
           {/* Full Name */}
           <div>
-            <label className="block text-sm font-semibold text-slate-300 mb-2">
+            <label className="block text-xs sm:text-sm font-semibold text-slate-300 mb-2 sm:mb-3">
               <div className="flex items-center gap-2">
                 <User size={18} className="text-orange-400" />
                 Full Name
@@ -173,14 +173,14 @@ export default function Contact() {
               value={formData.full_name}
               onChange={handleInputChange}
               placeholder="e.g., John Doe"
-              className="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-slate-800 border border-slate-700 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
             />
-            <p className="text-xs text-slate-400 mt-2">Your full name for identification</p>
+            <p className="text-xs text-slate-400 mt-1 sm:mt-2">Your full name for identification</p>
           </div>
 
           {/* Contact Number */}
           <div>
-            <label className="block text-sm font-semibold text-slate-300 mb-2">
+            <label className="block text-xs sm:text-sm font-semibold text-slate-300 mb-2 sm:mb-3">
               <div className="flex items-center gap-2">
                 <Phone size={18} className="text-orange-400" />
                 Contact Number
@@ -193,14 +193,14 @@ export default function Contact() {
               onChange={handleInputChange}
               placeholder="e.g., 9876543210"
               maxLength="15"
-              className="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-slate-800 border border-slate-700 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
             />
-            <p className="text-xs text-slate-400 mt-2">10-digit phone number for emergencies</p>
+            <p className="text-xs text-slate-400 mt-1 sm:mt-2">10-digit phone number for emergencies</p>
           </div>
 
           {/* Address */}
           <div>
-            <label className="block text-sm font-semibold text-slate-300 mb-2">
+            <label className="block text-xs sm:text-sm font-semibold text-slate-300 mb-2 sm:mb-3">
               <div className="flex items-center gap-2">
                 <MapPin size={18} className="text-orange-400" />
                 Address
@@ -212,15 +212,15 @@ export default function Contact() {
               onChange={handleInputChange}
               placeholder="e.g., 123 Main St, Apt 4B, City, Country"
               rows="3"
-              className="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-400 transition resize-none"
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-slate-800 border border-slate-700 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-400 transition resize-none"
             />
-            <p className="text-xs text-slate-400 mt-2">Your address for emergency responders</p>
+            <p className="text-xs text-slate-400 mt-1 sm:mt-2">Your address for emergency responders</p>
           </div>
 
           {/* Message */}
           {message.text && (
             <div
-              className={`p-3 rounded-lg text-sm ${
+              className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm ${
                 message.type === "success"
                   ? "bg-green-500/20 text-green-400 border border-green-500/50"
                   : "bg-red-500/20 text-red-400 border border-red-500/50"
@@ -234,7 +234,7 @@ export default function Contact() {
           <button
             type="submit"
             disabled={saving}
-            className="w-full py-3 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-semibold flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-2 sm:py-3 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-sm sm:text-base font-semibold flex items-center justify-center gap-2 transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Save size={18} />
             {saving ? "Saving..." : "Save Contact Information"}

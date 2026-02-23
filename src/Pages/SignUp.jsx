@@ -74,50 +74,49 @@ export default function SignUp() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0f172a] via-[#111827] to-[#1e293b] text-white flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center px-3 sm:px-4 md:px-6 py-6 sm:py-8 md:py-10">
+      <div className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg">
         {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-serif text-orange-400">
+        <div className="text-center mb-6 sm:mb-8 md:mb-10">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-orange-600 tracking-wide">
             Create Account
           </h1>
-          <p className="mt-3 text-sm tracking-widest text-gray-400">
+          <p className="mt-2 text-xs sm:text-sm tracking-widest text-gray-600 font-semibold">
             AAMABUWA CARE NETWORK
           </p>
-          <div className="w-12 h-[2px] bg-orange-400 mx-auto mt-2 rounded-full"></div>
+          <div className="w-12 sm:w-16 h-1 bg-orange-500 mx-auto mt-3 rounded-full"></div>
         </div>
 
         {/* Message Display */}
         {message.text && (
-          <div className={`mb-4 p-3 rounded-lg text-sm ${
+          <div className={`mb-4 p-3 sm:p-4 rounded-lg text-xs sm:text-sm font-medium ${
             message.type === "success" 
-              ? "bg-green-500/20 text-green-400 border border-green-500/50" 
-              : "bg-red-500/20 text-red-400 border border-red-500/50"
+              ? "bg-green-100 text-green-700 border border-green-300" 
+              : "bg-red-100 text-red-700 border border-red-300"
           }`}>
             {message.text}
           </div>
         )}
 
         {/* Role Selection */}
-        <div className="mb-8">
-          <p className="text-xs text-gray-400 mb-4 tracking-wide">
-            JOINING AS A...
-          </p>
+        <div className="mb-5 sm:mb-6 md:mb-8">
+          <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 font-semibold tracking-wide">JOINING AS A...</p>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-5">
             {/* Caregiver */}
             <button
               type="button"
               onClick={() => setSelectedRole("caregiver")}
-              className={`rounded-xl p-6 border transition-all duration-200 ${
-                selectedRole === "caregiver"
-                  ? "border-orange-400 bg-white/5"
-                  : "border-gray-700 hover:border-gray-500"
-              }`}
+              className={`p-4 sm:p-5 md:p-6 rounded-lg sm:rounded-xl border-2 transition-all duration-300 bg-white
+                ${
+                  selectedRole === "caregiver"
+                    ? "border-orange-500 shadow-lg scale-105"
+                    : "border-gray-200 hover:border-orange-300 hover:shadow-md"
+                }`}
             >
-              <User className="mx-auto mb-3 text-orange-400" size={40} />
-              <h3 className="font-semibold">Caregiver</h3>
-              <p className="text-xs text-gray-400 mt-1">
+              <User className="mx-auto mb-2 sm:mb-3 text-orange-500" size={32} />
+              <h3 className="font-semibold text-gray-800 text-sm sm:text-base md:text-lg">Children</h3>
+              <p className="text-xs sm:text-sm text-gray-500 mt-1">
                 Remote support
               </p>
             </button>
@@ -126,26 +125,27 @@ export default function SignUp() {
             <button
               type="button"
               onClick={() => setSelectedRole("parent")}
-              className={`rounded-xl p-6 border transition-all duration-200 ${
-                selectedRole === "parent"
-                  ? "border-orange-400 bg-white/5"
-                  : "border-gray-700 hover:border-gray-500"
-              }`}
+              className={`p-4 sm:p-5 md:p-6 rounded-lg sm:rounded-xl border-2 transition-all duration-300 bg-white
+                ${
+                  selectedRole === "parent"
+                    ? "border-orange-500 shadow-lg scale-105"
+                    : "border-gray-200 hover:border-orange-300 hover:shadow-md"
+                }`}
             >
-              <Users className="mx-auto mb-3 text-orange-400" size={40} />
-              <h3 className="font-semibold">Parent</h3>
-              <p className="text-xs text-gray-400 mt-1">
-                Daily monitoring
+              <Users className="mx-auto mb-2 sm:mb-3 text-orange-500" size={32} />
+              <h3 className="font-semibold text-gray-800 text-sm sm:text-base md:text-lg">Parent</h3>
+              <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                Live monitoring
               </p>
             </button>
           </div>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="bg-white p-4 sm:p-5 md:p-6 rounded-lg sm:rounded-xl shadow-md md:shadow-lg border border-gray-200">
           {/* Full Name */}
-          <div>
-            <label className="block text-xs text-gray-400 mb-2">
+          <div className="mb-3 sm:mb-4">
+            <label className="block text-xs sm:text-sm text-gray-600 mb-2 font-semibold">
               FULL NAME
             </label>
             <input
@@ -155,13 +155,13 @@ export default function SignUp() {
               onChange={handleInputChange}
               placeholder="Your Name"
               required
-              className="w-full rounded-lg bg-transparent border border-gray-700 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition"
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-gray-50 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400 text-gray-800 text-sm sm:text-base"
             />
           </div>
 
           {/* Email */}
-          <div>
-            <label className="block text-xs text-gray-400 mb-2">
+          <div className="mb-4 sm:mb-5">
+            <label className="block text-xs sm:text-sm text-gray-600 mb-2 font-semibold">
               EMAIL ADDRESS
             </label>
             <input
@@ -169,15 +169,15 @@ export default function SignUp() {
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              placeholder="name@example.com"
+              placeholder="john@gmail.com"
               required
-              className="w-full rounded-lg bg-transparent border border-gray-700 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition"
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-gray-50 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400 text-gray-800 text-sm sm:text-base"
             />
           </div>
 
           {/* Password */}
-          <div>
-            <label className="block text-xs text-gray-400 mb-2">
+          <div className="mb-5 sm:mb-6">
+            <label className="block text-xs sm:text-sm text-gray-600 mb-2 font-semibold">
               PASSWORD
             </label>
             <input
@@ -187,7 +187,7 @@ export default function SignUp() {
               onChange={handleInputChange}
               placeholder="Create a password"
               required
-              className="w-full rounded-lg bg-transparent border border-gray-700 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition"
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-gray-50 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400 text-gray-800 text-sm sm:text-base"
             />
           </div>
 
@@ -195,24 +195,25 @@ export default function SignUp() {
           <button
             type="submit"
             disabled={!selectedRole || loading}
-            className={`w-full py-3 rounded-lg font-medium transition ${
-              selectedRole && !loading
-                ? "bg-orange-500 hover:bg-orange-600 text-white"
-                : "bg-gray-700 text-gray-400 cursor-not-allowed"
-            }`}
+            className={`w-full py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold transition-all duration-300 text-white
+              ${
+                selectedRole && !loading
+                  ? "bg-orange-500 hover:bg-orange-600 active:scale-95 shadow-md hover:shadow-lg"
+                  : "bg-gray-300 cursor-not-allowed"
+              }`}
           >
             {loading ? "Creating Account..." : "Create Account"}
           </button>
         </form>
 
         {/* Footer */}
-        <p className="text-center text-sm text-gray-400 mt-6">
+        <p className="text-center text-xs sm:text-sm text-gray-600 mt-5 sm:mt-6 md:mt-8">
           Already have an account?{" "}
-          <Link to="/" className="text-orange-400 hover:underline">
+          <Link to="/" className="text-orange-600 hover:text-orange-700 font-semibold hover:underline">
             Log in
           </Link>
         </p>
       </div>
     </div>
   );
-}
+} 
