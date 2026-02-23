@@ -329,6 +329,23 @@ def get_parent_tasks(parent_id):
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 
+# ==================== DELETE TASK ====================
+@app.route('/api/delete-task/<int:task_id>', methods=['DELETE'])
+def delete_task(task_id):
+    try:
+        conn = sqlite3.connect('aamabuwa.db')
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({"success": True, "message": "Task deleted successfully"})
+        
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
 # ==================== ADD FAMILY LINK ====================
 @app.route('/api/add-family-link', methods=['POST'])
 def add_family_link():

@@ -23,7 +23,7 @@ function App() {
   <Route path="/child" element={ <ChildLayout/> }>
     <Route path="home" element={<Home />} />
     <Route path="task" element={<Task />} />
-    <Route path="sos" element={<SOS />} />
+    <Route path="log" element={<SOS />} />
     
   </Route>
 

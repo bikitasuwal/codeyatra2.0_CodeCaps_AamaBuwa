@@ -59,8 +59,8 @@ export default function Dashboard() {
         } else {
           setMessage({ text: "Login successful! Redirecting...", type: "success" });
           
-          // Store user data in localStorage
-          localStorage.setItem("user", JSON.stringify(data.user));
+          // Store user data in sessionStorage (tab-specific)
+          sessionStorage.setItem("user", JSON.stringify(data.user));
           
           // Redirect based on role
           setTimeout(() => {

@@ -8,8 +8,9 @@ import {
   AlertCircle,
   RefreshCw,
 } from "lucide-react";
-import { useEffect, useState } from "react";
 import { useAlarms } from "../../context/AlarmContext";
+import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 const toMinutes = (hour, minute, period) => {
   let normalizedHour = hour % 12;
@@ -60,6 +61,7 @@ const shouldRunBySchedule = (alarm, now) => {
 
   return true;
 };
+
 
 export default function HomeP() {
   const { alarms, updateAlarms } = useAlarms();
@@ -225,22 +227,70 @@ export default function HomeP() {
     );
   };
 
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+
+  // Get user data from sessionStorage when component mounts
+  useEffect(() => {
+    const userData = sessionStorage.getItem("user");
+    if (userData) {
+      const parsedUser = JSON.parse(userData);
+      setUser(parsedUser);
+    } else {
+      // If no user data, redirect to login
+      navigate("/");
+    }
+  }, []);
+
+  const handleBack = () => {
+    navigate(-1);
+  };
+
+  const handleMorningMeds = () => {
+    // Here you would call an API to mark morning meds as taken
+    alert("बिहानको औषधि लिइसक्नु भयो! (Morning medicine taken)");
+  };
+
+  const handleEveningMeds = () => {
+    // Here you would call an API to mark evening meds as taken
+    alert("बेलुकाको औषधि लिइसक्नु भयो! (Evening medicine taken)");
+  };
+
+  const handleSOS = () => {
+    // Here you would call an API to trigger emergency alert
+    alert("🚨 आपकाल! Emergency alert sent to your family.");
+  };
+
+  // Get time of day greeting
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "शुभ प्रभात (Good morning)";
+    if (hour < 17) return "शुभ दिउँसो (Good afternoon)";
+    return "शुभ साँझ (Good evening)";
+  };
+
   return (
     <div className="min-h-screen bg-[#f5efe8] flex justify-center py-6 px-4">
       <div className="w-full max-w-md space-y-6">
 
         {/* Header */}
         <div>
+          
 
           <h1 className="text-3xl font-bold text-orange-600">
             आमा-बुवा
           </h1>
 
           <p className="text-lg mt-2">
-            नमस्ते, आमा 🙏
+            नमस्ते, {user?.full_name?.split(' ')[0] || 'आमा'} 🙏
+          </p>
+
+          <p className="text-gray-500">
+            {getGreeting()}
           </p>
         </div>
 
+        {/* Notifications Section */}
         {notifications.length > 0 && (
           <div className="bg-white border border-green-200 rounded-2xl shadow-md p-4 space-y-3">
             {/* Initial Notification */}
@@ -326,7 +376,6 @@ export default function HomeP() {
           </div>
         )}
 
-        
 
         {/* Emergency Section */}
         <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center space-y-4">
@@ -339,7 +388,10 @@ export default function HomeP() {
           </p>
 
           <div className="flex justify-center">
-            <button className="w-32 h-32 rounded-full bg-red-600 text-white text-xl font-bold shadow-lg flex items-center justify-center hover:bg-red-700 transition">
+            <button 
+              onClick={handleSOS}
+              className="w-32 h-32 rounded-full bg-red-600 text-white text-xl font-bold shadow-lg flex items-center justify-center hover:bg-red-700 transition animate-pulse"
+            >
               SOS
             </button>
           </div>
