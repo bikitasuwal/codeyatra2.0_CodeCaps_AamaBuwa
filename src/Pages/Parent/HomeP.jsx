@@ -40,6 +40,25 @@ const todayKey = () => {
   return `${year}-${month}-${day}`;
 };
 
+const shouldRunBySchedule = (alarm, now) => {
+  const today = todayKey();
+
+  if (alarm.date && alarm.date > today) {
+    return false;
+  }
+
+  if (alarm.repeatMode === "customDays") {
+    const validDays = Array.isArray(alarm.repeatDays)
+      ? alarm.repeatDays.filter((day) => Number.isInteger(day) && day >= 0 && day <= 6)
+      : [];
+
+    if (validDays.length === 0) return false;
+    return validDays.includes(now.getDay());
+  }
+
+  return true;
+};
+
 export default function HomeP() {
   const { alarms, updateAlarms } = useAlarms();
   const [notifications, setNotifications] = useState([]);
@@ -54,6 +73,7 @@ export default function HomeP() {
         (alarm) => {
           const alarmMinutes = parseAlarmTimeToMinutes(alarm.time || "");
           if (alarmMinutes === null) return false;
+          if (!shouldRunBySchedule(alarm, now)) return false;
 
           return (
             alarm.enabled !== false &&

@@ -8,6 +8,7 @@ import ChildLayout from "./Layout.jsx/ChildLayout";
 import SOS from "./Pages/Child/SOS";
 import { AlarmProvider } from "./context/AlarmContext";
 
+
 function App() {
   return (
     <AlarmProvider>
@@ -23,6 +24,7 @@ function App() {
     <Route path="home" element={<Home />} />
     <Route path="task" element={<Task />} />
     <Route path="sos" element={<SOS />} />
+    
   </Route>
 
       </Routes>

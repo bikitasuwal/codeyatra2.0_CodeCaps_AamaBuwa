@@ -35,9 +35,14 @@ export function AlarmProvider({ children }) {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  const addAlarm = ({ time, label }) => {
+  const addAlarm = ({ time, label, date, repeatMode = "everyday", repeatDays = [] }) => {
     const cleanLabel = label.trim();
     if (!cleanLabel) return;
+
+    const normalizedRepeatMode = repeatMode === "customDays" ? "customDays" : "everyday";
+    const normalizedRepeatDays = Array.isArray(repeatDays)
+      ? repeatDays.filter((day) => Number.isInteger(day) && day >= 0 && day <= 6)
+      : [];
 
     setAlarms((prev) => [
       ...prev,
@@ -45,6 +50,9 @@ export function AlarmProvider({ children }) {
         id: Date.now(),
         time,
         label: cleanLabel,
+        date: date || null,
+        repeatMode: normalizedRepeatMode,
+        repeatDays: normalizedRepeatMode === "customDays" ? normalizedRepeatDays : [],
         enabled: true,
         lastTriggeredDate: null,
         triggeredAt: null,
